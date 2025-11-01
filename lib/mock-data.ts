@@ -1,0 +1,133 @@
+import { Doctor, Appointment, Payment, DashboardStats } from './types';
+
+export const mockDashboardStats: DashboardStats = {
+  totalAppointments: 1248,
+  pendingConfirmations: 23,
+  revenue: 186400,
+  revenueChange: 12.5,
+  appointmentsChange: 8.3,
+};
+
+export const mockDoctors: Doctor[] = [
+  {
+    id: '1',
+    name: 'Dr. Sarah Johnson',
+    specialty: 'Cardiology',
+    hospital: 'City General Hospital',
+    photo: 'https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=200',
+    fee: 3000,
+    rating: 4.8,
+    availableSlots: [
+      { id: '1', date: '2025-11-05', time: '09:00 AM', available: true },
+      { id: '2', date: '2025-11-05', time: '10:00 AM', available: true },
+      { id: '3', date: '2025-11-05', time: '02:00 PM', available: false },
+    ],
+  },
+  {
+    id: '2',
+    name: 'Dr. Michael Chen',
+    specialty: 'Neurology',
+    hospital: 'St. Mary Medical Center',
+    photo: 'https://images.pexels.com/photos/5327921/pexels-photo-5327921.jpeg?auto=compress&cs=tinysrgb&w=200',
+    fee: 3500,
+    rating: 4.9,
+    availableSlots: [
+      { id: '4', date: '2025-11-06', time: '11:00 AM', available: true },
+      { id: '5', date: '2025-11-06', time: '03:00 PM', available: true },
+    ],
+  },
+  {
+    id: '3',
+    name: 'Dr. Emily Roberts',
+    specialty: 'Orthopedics',
+    hospital: 'Metropolitan Hospital',
+    photo: 'https://images.pexels.com/photos/8460157/pexels-photo-8460157.jpeg?auto=compress&cs=tinysrgb&w=200',
+    fee: 2800,
+    rating: 4.7,
+    availableSlots: [
+      { id: '6', date: '2025-11-07', time: '09:30 AM', available: true },
+      { id: '7', date: '2025-11-07', time: '01:00 PM', available: true },
+    ],
+  },
+];
+
+export const mockAppointments: Appointment[] = [
+  {
+    id: 'APT001',
+    doctorId: '1',
+    doctorName: 'Dr. Sarah Johnson',
+    patientName: 'John Smith',
+    patientEmail: 'john.smith@example.com',
+    patientPhone: '+1234567890',
+    date: '2025-11-05',
+    time: '09:00 AM',
+    status: 'confirmed',
+    paymentStatus: 'paid',
+    amount: 3000,
+    hospital: 'City General Hospital',
+    specialty: 'Cardiology',
+    createdAt: '2025-10-28T10:30:00Z',
+  },
+  {
+    id: 'APT002',
+    doctorId: '2',
+    doctorName: 'Dr. Michael Chen',
+    patientName: 'Jane Doe',
+    patientEmail: 'jane.doe@example.com',
+    patientPhone: '+1234567891',
+    date: '2025-11-06',
+    time: '11:00 AM',
+    status: 'pending',
+    paymentStatus: 'pending',
+    amount: 3500,
+    hospital: 'St. Mary Medical Center',
+    specialty: 'Neurology',
+    createdAt: '2025-10-29T14:20:00Z',
+  },
+  {
+    id: 'APT003',
+    doctorId: '3',
+    doctorName: 'Dr. Emily Roberts',
+    patientName: 'Robert Wilson',
+    patientEmail: 'robert.wilson@example.com',
+    patientPhone: '+1234567892',
+    date: '2025-11-07',
+    time: '09:30 AM',
+    status: 'confirmed',
+    paymentStatus: 'paid',
+    amount: 2800,
+    hospital: 'Metropolitan Hospital',
+    specialty: 'Orthopedics',
+    createdAt: '2025-10-30T09:15:00Z',
+  },
+];
+
+export const mockPayments: Payment[] = [
+  {
+    id: 'PAY001',
+    appointmentId: 'APT001',
+    amount: 3000,
+    status: 'paid',
+    method: 'card',
+    transactionId: 'TXN123456789',
+    date: '2025-10-28T10:35:00Z',
+  },
+  {
+    id: 'PAY002',
+    appointmentId: 'APT002',
+    amount: 3500,
+    status: 'pending',
+    method: 'bank',
+    transactionId: 'TXN123456790',
+    date: '2025-10-29T14:25:00Z',
+  },
+  {
+    id: 'PAY003',
+    appointmentId: 'APT003',
+    amount: 2800,
+    status: 'paid',
+    method: 'card',
+    transactionId: 'TXN123456791',
+    date: '2025-10-30T09:20:00Z',
+  },
+];
