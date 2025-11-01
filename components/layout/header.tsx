@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Search, Bell, User, LogOut, Settings } from 'lucide-react';
 
@@ -123,8 +123,9 @@ export function Header({ title, breadcrumbs }: HeaderProps) {
                 className="flex items-center space-x-3 hover:bg-gray-100 h-auto py-2 px-3"
               >
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src="https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=100" />
-                  <AvatarFallback>CA</AvatarFallback>
+                  <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold">
+                    CA
+                  </AvatarFallback>
                 </Avatar>
                 <div className="text-left hidden lg:block">
                   <p className="text-sm font-medium text-gray-900">

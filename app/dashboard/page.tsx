@@ -5,7 +5,7 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Calendar,
   TrendingUp,
@@ -249,8 +249,7 @@ export default function DashboardPage() {
                   >
                     <div className="flex items-center space-x-4">
                       <Avatar className="h-12 w-12">
-                        <AvatarImage src="https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=100" />
-                        <AvatarFallback>
+                        <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
                           {appointment.doctorName
                             .split(' ')
                             .map((n) => n[0])

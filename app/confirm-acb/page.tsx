@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Dialog,
   DialogContent,
@@ -146,8 +146,7 @@ export default function ConfirmACBPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4 flex-1">
                       <Avatar className="h-14 w-14">
-                        <AvatarImage src="https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=100" />
-                        <AvatarFallback>
+                        <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
                           {appointment.doctorName
                             .split(' ')
                             .map((n) => n[0])
