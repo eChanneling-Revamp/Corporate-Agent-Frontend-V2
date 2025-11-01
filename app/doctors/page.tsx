@@ -294,9 +294,9 @@ export default function DoctorsPage() {
 
       {/* Booking Dialog */}
       <Dialog open={showBookingDialog} onOpenChange={setShowBookingDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-gray-900">
+            <DialogTitle className="text-lg sm:text-xl font-bold text-gray-900">
               Book Appointment with {selectedDoctor?.name}
             </DialogTitle>
             <DialogDescription>

@@ -80,3 +80,76 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom responsive utilities */
+@layer utilities {
+  /* Ensure images are responsive by default */
+  .responsive-img {
+    @apply w-full h-auto max-w-full;
+  }
+
+  /* Mobile-first containers with proper overflow handling */
+  .mobile-container {
+    @apply w-full min-w-0 px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Responsive text sizes */
+  .text-responsive-sm {
+    @apply text-sm sm:text-base;
+  }
+  
+  .text-responsive-lg {
+    @apply text-lg sm:text-xl lg:text-2xl;
+  }
+
+  /* Responsive spacing */
+  .space-responsive {
+    @apply space-y-4 sm:space-y-6 lg:space-y-8;
+  }
+
+  /* Mobile table alternative */
+  .mobile-stack {
+    @apply flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4;
+  }
+
+  /* Responsive grid utilities */
+  .grid-responsive-cards {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6;
+  }
+
+  .grid-responsive-2col {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6;
+  }
+
+  /* Touch-friendly buttons */
+  .btn-touch {
+    @apply min-h-[44px] min-w-[44px];
+  }
+}
+
+/* Responsive table styles */
+@layer components {
+  .responsive-table {
+    @apply w-full overflow-x-auto;
+  }
+  
+  .responsive-table table {
+    @apply min-w-full;
+  }
+  
+  /* Mobile: Stack table content */
+  @media (max-width: 640px) {
+    .mobile-table-card {
+      @apply block border border-gray-200 rounded-lg p-4 mb-4 shadow-sm;
+    }
+    
+    .mobile-table-card td {
+      @apply block text-left py-1;
+    }
+    
+    .mobile-table-card td:before {
+      content: attr(data-label) ': ';
+      @apply font-semibold text-gray-700;
+    }
+  }
+}

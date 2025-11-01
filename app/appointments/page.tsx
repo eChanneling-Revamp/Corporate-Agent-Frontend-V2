@@ -438,14 +438,14 @@ export default function AppointmentsPage() {
       </Dialog>
 
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Appointment Details</DialogTitle>
           </DialogHeader>
 
           {selectedAppointment && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-cyan-50 border border-cyan-200">
                   <p className="text-xs text-gray-600 mb-1">Appointment ID</p>
                   <p className="font-semibold text-gray-900">
@@ -461,10 +461,10 @@ export default function AppointmentsPage() {
               </div>
 
               <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
-                <p className="text-sm font-semibold text-gray-900 mb-3">
+                <p className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
                   Doctor Information
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <p className="text-xs text-gray-600">Name</p>
                     <p className="text-sm font-medium">
@@ -490,7 +490,7 @@ export default function AppointmentsPage() {
                 <p className="text-sm font-semibold text-gray-900 mb-3">
                   Patient Information
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <p className="text-xs text-gray-600">Name</p>
                     <p className="text-sm font-medium">
@@ -516,7 +516,7 @@ export default function AppointmentsPage() {
                 <p className="text-sm font-semibold text-gray-900 mb-3">
                   Payment Information
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <p className="text-xs text-gray-600">Amount</p>
                     <p className="text-lg font-bold text-gray-900">

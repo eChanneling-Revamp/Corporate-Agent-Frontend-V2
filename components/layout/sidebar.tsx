@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Users,
+  LogOut,
 } from 'lucide-react';
 
 const navItems = [
@@ -61,21 +62,48 @@ const navItems = [
   },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // Clear any stored authentication data
+    localStorage.removeItem('authToken');
+    // Redirect to login page
+    router.push('/login');
+  };
 
   return (
-    <aside
-      className={cn(
-        'fixed left-0 top-0 z-40 h-screen bg-white border-r border-gray-200 transition-all duration-300 ease-in-out',
-        collapsed ? 'w-20' : 'w-64'
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-gray-600 bg-opacity-75 transition-opacity lg:hidden"
+          onClick={onMobileClose}
+        />
       )}
-    >
+      
+      <aside
+        className={cn(
+          'fixed left-0 top-0 z-40 h-screen bg-white border-r border-gray-200 transition-all duration-300 ease-in-out',
+          // Desktop behavior
+          'hidden lg:flex lg:flex-col',
+          collapsed ? 'lg:w-20' : 'lg:w-64',
+          // Mobile behavior
+          'lg:translate-x-0',
+          mobileOpen ? 'flex flex-col translate-x-0 w-64' : '-translate-x-full w-64'
+        )}
+      >
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           {!collapsed && (
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 flex-1">
               <Image
                 src="/logo.png"
                 alt="eChannelling"
@@ -88,7 +116,7 @@ export function Sidebar() {
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
           >
             {collapsed ? (
               <ChevronRight className="h-5 w-5 text-gray-600" />
@@ -108,21 +136,37 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200',
+                  'flex items-center px-4 py-3 rounded-xl transition-all duration-200',
                   isActive
                     ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg'
                     : 'text-gray-700 hover:bg-gray-100',
-                  collapsed && 'justify-center'
+                  collapsed ? 'justify-center' : 'space-x-3'
                 )}
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />
                 {!collapsed && (
-                  <span className="font-medium">{item.title}</span>
+                  <span className="font-medium truncate">{item.title}</span>
                 )}
               </Link>
             );
           })}
         </nav>
+
+        {/* Logout Button */}
+        <div className="p-4">
+          <button
+            onClick={handleLogout}
+            className={cn(
+              'flex items-center w-full px-4 py-3 rounded-xl transition-all duration-200 text-red-600 hover:bg-red-50',
+              collapsed ? 'justify-center' : 'space-x-3'
+            )}
+          >
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && (
+              <span className="font-medium truncate">Logout</span>
+            )}
+          </button>
+        </div>
 
         <div className="p-4 border-t border-gray-200">
           <div
@@ -164,5 +208,6 @@ export function Sidebar() {
         </div>
       </div>
     </aside>
+    </>
   );
 }
