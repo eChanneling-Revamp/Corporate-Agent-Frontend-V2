@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,14 +8,38 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Download, CreditCard, TrendingUp } from 'lucide-react';
-import { mockPayments } from '@/lib/mock-data';
+import { Search, Download, CreditCard, TrendingUp, Loader2 } from 'lucide-react';
+import { api } from '@/lib/api';
 
 export default function PaymentsPage() {
   const { toast } = useToast();
+  const [payments, setPayments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredPayments = mockPayments.filter((payment) => {
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        setLoading(true);
+        const apiPayments = await api.payments.getAll();
+        setPayments(apiPayments);
+      } catch (error) {
+        console.error('Failed to fetch payments:', error);
+        toast({
+          title: 'Error Loading Payments',
+          description: 'Failed to load payments from database',
+          variant: 'destructive',
+        });
+        setPayments([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPayments();
+  }, [toast]);
+
+  const filteredPayments = payments.filter((payment: any) => {
     const matchesSearch =
       searchQuery === '' ||
       payment.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -24,12 +48,12 @@ export default function PaymentsPage() {
     return matchesSearch;
   });
 
-  const totalRevenue = mockPayments
-    .filter((p) => p.status === 'paid')
-    .reduce((sum, p) => sum + p.amount, 0);
-  const pendingAmount = mockPayments
-    .filter((p) => p.status === 'pending')
-    .reduce((sum, p) => sum + p.amount, 0);
+  const totalRevenue = payments
+    .filter((p: any) => p.status === 'paid')
+    .reduce((sum: number, p: any) => sum + p.amount, 0);
+  const pendingAmount = payments
+    .filter((p: any) => p.status === 'pending')
+    .reduce((sum: number, p: any) => sum + p.amount, 0);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -96,7 +120,7 @@ export default function PaymentsPage() {
                     Rs. {(pendingAmount / 1000).toFixed(1)}K
                   </p>
                   <Badge className="bg-amber-100 text-amber-700 border-amber-200 mt-2">
-                    {mockPayments.filter((p) => p.status === 'pending').length}{' '}
+                    {payments.filter((p: any) => p.status === 'pending').length}{' '}
                     pending
                   </Badge>
                 </div>
@@ -115,7 +139,7 @@ export default function PaymentsPage() {
                     Completed Transactions
                   </p>
                   <p className="text-3xl font-bold text-gray-900">
-                    {mockPayments.filter((p) => p.status === 'paid').length}
+                    {payments.filter((p: any) => p.status === 'paid').length}
                   </p>
                   <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 mt-2">
                     This month
@@ -178,7 +202,16 @@ export default function PaymentsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPayments.map((payment) => (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={8} className="py-16 text-center">
+                        <div className="flex items-center justify-center">
+                          <Loader2 className="h-6 w-6 animate-spin text-cyan-500 mr-2" />
+                          <span className="text-gray-600">Loading payments...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : filteredPayments.map((payment: any) => (
                     <tr
                       key={payment.id}
                       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
@@ -236,7 +269,7 @@ export default function PaymentsPage() {
               </table>
             </div>
 
-            {filteredPayments.length === 0 && (
+            {!loading && filteredPayments.length === 0 && (
               <div className="text-center py-16">
                 <div className="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
                   <Search className="h-12 w-12 text-gray-400" />

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,16 +15,46 @@ import {
   Clock,
   ArrowRight,
   Plus,
+  Loader2,
 } from 'lucide-react';
-import { mockDashboardStats, mockAppointments } from '@/lib/mock-data';
+import { api } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const stats = mockDashboardStats;
-  const recentAppointments = mockAppointments.slice(0, 5);
+  const { toast } = useToast();
+  const [stats, setStats] = useState<any>(null);
+  const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const kpiCards = [
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const [dashboardStats, appointments] = await Promise.all([
+          api.dashboard.getStats(),
+          api.appointments.getAll()
+        ]);
+        
+        setStats(dashboardStats);
+        setRecentAppointments(appointments.slice(0, 5));
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+        toast({
+          title: 'Error Loading Dashboard',
+          description: 'Failed to load dashboard data from database',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [toast]);
+
+  const kpiCards = stats ? [
     {
       title: 'Total Appointments',
       value: stats.totalAppointments.toLocaleString(),
@@ -49,14 +80,14 @@ export default function DashboardPage() {
       color: 'from-emerald-500 to-teal-500',
     },
     {
-      title: 'Active Patients',
-      value: '842',
+      title: 'Active Doctors',
+      value: stats.activeDoctors.toLocaleString(),
       change: '+5.2%',
       trend: 'up',
       icon: Users,
       color: 'from-purple-500 to-pink-500',
     },
-  ];
+  ] : [];
 
   const quickActions = [
     {
@@ -94,6 +125,17 @@ export default function DashboardPage() {
         return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout title="Dashboard" breadcrumbs={[{ label: 'Dashboard' }]}>
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+          <span className="ml-2 text-gray-600">Loading dashboard...</span>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout title="Dashboard" breadcrumbs={[{ label: 'Dashboard' }]}>

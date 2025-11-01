@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,22 +16,45 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Search, CheckCircle2, X, Calendar } from 'lucide-react';
-import { mockAppointments } from '@/lib/mock-data';
+import { Search, CheckCircle2, X, Calendar, Loader2 } from 'lucide-react';
+import { api } from '@/lib/api';
 import { Appointment } from '@/lib/types';
 
 export default function ConfirmACBPage() {
   const { toast } = useToast();
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
 
-  const unpaidAppointments = mockAppointments.filter(
-    (apt) => apt.paymentStatus === 'pending'
-  );
+  useEffect(() => {
+    const fetchUnpaidAppointments = async () => {
+      try {
+        setLoading(true);
+        const allAppointments = await api.appointments.getAll();
+        const unpaidAppointments = allAppointments.filter(
+          (apt: any) => apt.paymentStatus === 'pending'
+        );
+        setAppointments(unpaidAppointments);
+      } catch (error) {
+        console.error('Failed to fetch unpaid appointments:', error);
+        toast({
+          title: 'Error Loading Appointments',
+          description: 'Failed to load unpaid appointments from database',
+          variant: 'destructive',
+        });
+        setAppointments([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filteredAppointments = unpaidAppointments.filter((apt) => {
+    fetchUnpaidAppointments();
+  }, [toast]);
+
+  const filteredAppointments = appointments.filter((apt) => {
     const matchesSearch =
       searchQuery === '' ||
       apt.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -83,7 +106,7 @@ export default function ConfirmACBPage() {
                 <p className="text-sm text-gray-600">
                   You have{' '}
                   <span className="font-bold text-amber-700">
-                    {unpaidAppointments.length}
+                    {appointments.length}
                   </span>{' '}
                   appointments waiting for confirmation. Please review and
                   confirm or cancel each appointment.
@@ -91,7 +114,7 @@ export default function ConfirmACBPage() {
               </div>
               <div className="text-right">
                 <p className="text-3xl font-bold text-amber-600">
-                  {unpaidAppointments.length}
+                  {appointments.length}
                 </p>
                 <p className="text-sm text-gray-600">Pending</p>
               </div>

@@ -62,7 +62,8 @@ export default function LoginPage() {
                   alt="eChannelling"
                   width={120}
                   height={60}
-                  className="object-contain"
+                  priority
+                  className="object-contain w-auto h-auto"
                 />
               </div>
             </div>

@@ -81,7 +81,8 @@ export function Sidebar() {
                 alt="eChannelling"
                 width={120}
                 height={40}
-                className="object-contain"
+                priority
+                className="object-contain w-auto h-auto"
               />
             </div>
           )}

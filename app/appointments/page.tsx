@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,12 +25,14 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Calendar, X, Eye } from 'lucide-react';
-import { mockAppointments } from '@/lib/mock-data';
+import { Search, Calendar, X, Eye, Loader2 } from 'lucide-react';
+import { api } from '@/lib/api';
 import { Appointment } from '@/lib/types';
 
 export default function AppointmentsPage() {
   const { toast } = useToast();
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDoctor, setFilterDoctor] = useState('all');
   const [filterHospital, setFilterHospital] = useState('all');
@@ -41,7 +43,29 @@ export default function AppointmentsPage() {
     useState<Appointment | null>(null);
   const [cancelReason, setCancelReason] = useState('');
 
-  const filteredAppointments = mockAppointments.filter((apt) => {
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        setLoading(true);
+        const apiAppointments = await api.appointments.getAll();
+        setAppointments(apiAppointments);
+      } catch (error) {
+        console.error('Failed to fetch appointments:', error);
+        toast({
+          title: 'Error Loading Appointments',
+          description: 'Failed to load appointments from database',
+          variant: 'destructive',
+        });
+        setAppointments([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppointments();
+  }, [toast]);
+
+  const filteredAppointments = appointments.filter((apt) => {
     const matchesSearch =
       searchQuery === '' ||
       apt.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -189,7 +213,12 @@ export default function AppointmentsPage() {
               </TabsList>
 
               <TabsContent value={selectedTab} className="space-y-4">
-                {filteredAppointments.map((appointment) => (
+                {loading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+                    <span className="ml-2 text-gray-600">Loading appointments...</span>
+                  </div>
+                ) : filteredAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
                     className="p-6 rounded-xl border-2 border-gray-200 hover:border-cyan-300 hover:shadow-md transition-all duration-200"
@@ -309,7 +338,7 @@ export default function AppointmentsPage() {
                   </div>
                 ))}
 
-                {filteredAppointments.length === 0 && (
+                {!loading && filteredAppointments.length === 0 && (
                   <div className="text-center py-16">
                     <div className="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
                       <Calendar className="h-12 w-12 text-gray-400" />
