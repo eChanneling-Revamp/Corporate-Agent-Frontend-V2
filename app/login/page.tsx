@@ -24,25 +24,50 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log('🔐 Attempting login for:', email);
+      
+      const response = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-      if (email === 'agent@echannelling.com' && password === 'password') {
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Store tokens in localStorage
+        localStorage.setItem('accessToken', data.data.tokens.accessToken);
+        localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+        if (data.data.agent) {
+          localStorage.setItem('agent', JSON.stringify(data.data.agent));
+        }
+
         toast({
           title: 'Login Successful',
-          description: 'Welcome back to eChannelling Corporate Portal',
+          description: `Welcome back, ${data.data.agent?.name || data.data.user.email}!`,
         });
+        
+        console.log('✅ Login successful, redirecting to dashboard...');
         router.push('/dashboard');
       } else {
+        console.log('❌ Login failed:', data.message);
         toast({
           title: 'Login Failed',
-          description: 'Invalid email or password',
+          description: data.message || 'Invalid email or password',
           variant: 'destructive',
         });
       }
     } catch (error) {
+      console.error('❌ Login error:', error);
       toast({
         title: 'Error',
-        description: 'An error occurred. Please try again.',
+        description: 'Unable to connect to server. Please check your connection.',
         variant: 'destructive',
       });
     } finally {
@@ -83,7 +108,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="agent@echannelling.com"
+                placeholder="corporateagent@slt.lk"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -162,7 +187,7 @@ export default function LoginPage() {
               <p className="text-center text-sm text-gray-600">
                 Demo credentials:{' '}
                 <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
-                  agent@echannelling.com / password
+                  corporateagent@slt.lk / ABcd123#
                 </span>
               </p>
             </div>
