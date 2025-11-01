@@ -142,6 +142,32 @@ export default function AppointmentsPage() {
       ]}
     >
       <div className="space-y-6">
+        {/* Information Banner */}
+        <Card className="border-none shadow-lg bg-gradient-to-r from-cyan-50 to-blue-50 border-l-4 border-cyan-500">
+          <CardContent className="p-6">
+            <div className="flex items-start space-x-4">
+              <div className="bg-cyan-500 p-3 rounded-xl">
+                <Calendar className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg text-gray-900 mb-2">
+                  Appointment Management Center
+                </h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  All appointments booked through the ABC Insurance Corporate Agent Portal appear here. 
+                  Patients and corporate coordinators can track, view, and manage appointments in real-time.
+                </p>
+                <div className="flex flex-wrap gap-3 text-xs">
+                  <Badge className="bg-emerald-100 text-emerald-700">✓ Real-time Updates</Badge>
+                  <Badge className="bg-blue-100 text-blue-700">✓ SMS & Email Notifications</Badge>
+                  <Badge className="bg-purple-100 text-purple-700">✓ Corporate Billing</Badge>
+                  <Badge className="bg-orange-100 text-orange-700">✓ Digital Receipts</Badge>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="border-none shadow-lg">
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -262,10 +288,13 @@ export default function AppointmentsPage() {
                                 {appointment.patientName}
                               </p>
                               <p className="text-xs text-gray-600">
-                                {appointment.patientEmail}
+                                📧 {appointment.patientEmail}
                               </p>
                               <p className="text-xs text-gray-600">
-                                {appointment.patientPhone}
+                                📱 {appointment.patientPhone}
+                              </p>
+                              <p className="text-xs text-emerald-600 font-medium mt-1">
+                                ✓ Notifications sent to patient
                               </p>
                             </div>
 
