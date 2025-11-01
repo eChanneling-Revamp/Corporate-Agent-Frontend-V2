@@ -1,6 +1,6 @@
 import { Agent, Doctor, Appointment, Payment, Report, DashboardStats } from './types';
 
-const API_BASE = '/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export const api = {
   auth: {
