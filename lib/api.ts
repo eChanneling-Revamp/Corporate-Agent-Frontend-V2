@@ -2,6 +2,11 @@ import { Agent, Doctor, Appointment, Payment, Report, DashboardStats } from './t
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
+// Debug log for production
+if (typeof window !== 'undefined') {
+  console.log('🌐 API_BASE:', API_BASE);
+}
+
 export const api = {
   auth: {
     login: async (email: string, password: string) => {
