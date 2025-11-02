@@ -252,7 +252,7 @@ export default function DashboardPage() {
                         <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
                           {appointment.doctorName
                             .split(' ')
-                            .map((n) => n[0])
+                            .map((n: string) => n[0])
                             .join('')}
                         </AvatarFallback>
                       </Avatar>

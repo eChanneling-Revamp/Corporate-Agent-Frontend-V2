@@ -160,7 +160,7 @@ export default function DoctorsPage() {
   };
 
   // Get unique specialties for filter
-  const specialties = [...new Set(doctors.map(d => d.specialty))];
+  const specialties = Array.from(new Set(doctors.map(d => d.specialty)));
   
   // Generate time slots
   const timeSlots = [
