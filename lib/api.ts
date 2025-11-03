@@ -1,10 +1,23 @@
 import { Agent, Doctor, Appointment, Payment, Report, DashboardStats } from './types';
 
-// Production API URL configuration for Vercel deployment
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 
-  (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) 
-    ? 'https://corporate-agent-backend-v2.onrender.com/api' 
-    : 'http://localhost:3001/api';
+// Force production API URL for Vercel deployment - NO MORE LOCALHOST!
+const API_BASE = (() => {
+  // If we're in browser and on Vercel, use production API
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname.includes('vercel.app') || hostname.includes('corporate-agent-frontend')) {
+      return 'https://corporate-agent-backend-v2.onrender.com/api';
+    }
+  }
+  
+  // Check environment variable
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  // Development fallback
+  return 'http://localhost:3001/api';
+})();
 
 // Debug log for production
 if (typeof window !== 'undefined') {
