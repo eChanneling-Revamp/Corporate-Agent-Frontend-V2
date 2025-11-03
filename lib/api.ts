@@ -1,10 +1,28 @@
 import { Agent, Doctor, Appointment, Payment, Report, DashboardStats } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// Robust API URL detection for production
+const getApiBase = () => {
+  // Check if we're in production and have the environment variable
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  // Production fallback for Vercel deployment
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    return 'https://corporate-agent-backend-v2.onrender.com/api';
+  }
+  
+  // Development fallback
+  return 'http://localhost:3001/api';
+};
+
+const API_BASE = getApiBase();
 
 // Debug log for production
 if (typeof window !== 'undefined') {
   console.log('🌐 API_BASE:', API_BASE);
+  console.log('🔧 Environment:', process.env.NODE_ENV);
+  console.log('🏠 Hostname:', window.location.hostname);
 }
 
 export const api = {
