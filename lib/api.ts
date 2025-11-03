@@ -11,24 +11,9 @@ const API_BASE = (() => {
   return 'https://corporate-agent-backend-v2.onrender.com/api';
 })();
 
-// AGGRESSIVE DEBUG LOGGING
+// Clean production logging
 if (typeof window !== 'undefined') {
-  console.error('🎯 FINAL ATTEMPT API_BASE:', API_BASE);
-  console.error('🔥 TIMESTAMP: 2025-11-03T05:20:00Z');
-  console.error('� LOCALHOST IS DEAD!');
-  console.error('🌍 Environment:', process.env.NODE_ENV);
-  console.error('🏠 Hostname:', window.location.hostname);
-  
-  // Override fetch globally to ensure it never uses localhost
-  const originalFetch = window.fetch;
-  window.fetch = function(url, options) {
-    if (typeof url === 'string' && url.includes('localhost')) {
-      console.error('🚨 BLOCKED LOCALHOST REQUEST:', url);
-      url = url.replace('http://localhost:3001', 'https://corporate-agent-backend-v2.onrender.com');
-      console.error('🔄 REDIRECTED TO:', url);
-    }
-    return originalFetch.call(this, url, options);
-  };
+  console.log('✅ Production API configured:', API_BASE);
 }
 
 export const api = {
