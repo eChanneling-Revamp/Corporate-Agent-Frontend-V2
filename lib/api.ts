@@ -1,6 +1,7 @@
 import { Agent, Doctor, Appointment, Payment, Report, DashboardStats } from './types';
 
 // ABSOLUTELY HARDCODED PRODUCTION API URL - NO LOCALHOST ANYWHERE!
+// Force rebuild timestamp: 2025-11-03T05:10:00Z
 const API_BASE = 'https://corporate-agent-backend-v2.onrender.com/api';
 
 // Debug log for production - HARDCODED API URL
