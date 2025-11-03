@@ -1,10 +1,19 @@
 import { Agent, Doctor, Appointment, Payment, Report, DashboardStats } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// FINAL ATTEMPT - RUNTIME API URL OVERRIDE
+const API_BASE = (() => {
+  // ALWAYS use production API in browser
+  if (typeof window !== 'undefined') {
+    // Force production API URL regardless of environment
+    return 'https://corporate-agent-backend-v2.onrender.com/api';
+  }
+  // Server-side fallback (should never be used in static export)
+  return 'https://corporate-agent-backend-v2.onrender.com/api';
+})();
 
-// Debug log for production
+// Clean production logging
 if (typeof window !== 'undefined') {
-  console.log('🌐 API_BASE:', API_BASE);
+  console.log('[CONFIG] Production API configured:', API_BASE);
 }
 
 export const api = {
