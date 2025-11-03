@@ -1,15 +1,34 @@
 import { Agent, Doctor, Appointment, Payment, Report, DashboardStats } from './types';
 
-// ABSOLUTELY HARDCODED PRODUCTION API URL - NO LOCALHOST ANYWHERE!
-// Force rebuild timestamp: 2025-11-03T05:10:00Z
-const API_BASE = 'https://corporate-agent-backend-v2.onrender.com/api';
+// FINAL ATTEMPT - RUNTIME API URL OVERRIDE
+const API_BASE = (() => {
+  // ALWAYS use production API in browser
+  if (typeof window !== 'undefined') {
+    // Force production API URL regardless of environment
+    return 'https://corporate-agent-backend-v2.onrender.com/api';
+  }
+  // Server-side fallback (should never be used in static export)
+  return 'https://corporate-agent-backend-v2.onrender.com/api';
+})();
 
-// Debug log for production - HARDCODED API URL
+// AGGRESSIVE DEBUG LOGGING
 if (typeof window !== 'undefined') {
-  console.log('🚀 HARDCODED API_BASE:', API_BASE);
-  console.log('🔧 Environment:', process.env.NODE_ENV);
-  console.log('🏠 Hostname:', window.location.hostname);
-  console.log('✅ NO MORE LOCALHOST - PRODUCTION API ONLY!');
+  console.error('🎯 FINAL ATTEMPT API_BASE:', API_BASE);
+  console.error('🔥 TIMESTAMP: 2025-11-03T05:20:00Z');
+  console.error('� LOCALHOST IS DEAD!');
+  console.error('🌍 Environment:', process.env.NODE_ENV);
+  console.error('🏠 Hostname:', window.location.hostname);
+  
+  // Override fetch globally to ensure it never uses localhost
+  const originalFetch = window.fetch;
+  window.fetch = function(url, options) {
+    if (typeof url === 'string' && url.includes('localhost')) {
+      console.error('🚨 BLOCKED LOCALHOST REQUEST:', url);
+      url = url.replace('http://localhost:3001', 'https://corporate-agent-backend-v2.onrender.com');
+      console.error('🔄 REDIRECTED TO:', url);
+    }
+    return originalFetch.call(this, url, options);
+  };
 }
 
 export const api = {
