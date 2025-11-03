@@ -1,17 +1,10 @@
 {
-  "version": 2,
-  "buildCommand": "npm run build",
   "env": {
     "NEXT_PUBLIC_API_URL": "https://corporate-agent-backend-v2.onrender.com/api"
   },
   "build": {
     "env": {
       "NEXT_PUBLIC_API_URL": "https://corporate-agent-backend-v2.onrender.com/api"
-    }
-  },
-  "functions": {
-    "app/api/**/*.js": {
-      "runtime": "@vercel/node"
     }
   }
 }
