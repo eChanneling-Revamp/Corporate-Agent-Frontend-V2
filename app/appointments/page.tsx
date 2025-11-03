@@ -288,13 +288,13 @@ export default function AppointmentsPage() {
                                 {appointment.patientName}
                               </p>
                               <p className="text-xs text-gray-600">
-                                📧 {appointment.patientEmail}
+                                Email: {appointment.patientEmail}
                               </p>
                               <p className="text-xs text-gray-600">
-                                📱 {appointment.patientPhone}
+                                Phone: {appointment.patientPhone}
                               </p>
                               <p className="text-xs text-emerald-600 font-medium mt-1">
-                                ✓ Notifications sent to patient
+                                Notifications sent to patient
                               </p>
                             </div>
 

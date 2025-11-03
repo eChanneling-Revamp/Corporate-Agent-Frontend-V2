@@ -13,7 +13,7 @@ const API_BASE = (() => {
 
 // Clean production logging
 if (typeof window !== 'undefined') {
-  console.log('✅ Production API configured:', API_BASE);
+  console.log('[CONFIG] Production API configured:', API_BASE);
 }
 
 export const api = {

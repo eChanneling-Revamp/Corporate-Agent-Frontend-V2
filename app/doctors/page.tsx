@@ -134,7 +134,7 @@ export default function DoctorsPage() {
       const response = await api.appointments.create(bookingData);
       
       toast({
-        title: 'Appointment Booked Successfully! 🎉',
+        title: 'Appointment Booked Successfully!',
         description: `Booking confirmation sent to ${patientEmail}. Appointment ID: ${response.id || 'Generated'}`,
       });
 
@@ -142,7 +142,7 @@ export default function DoctorsPage() {
       setTimeout(() => {
         toast({
           title: 'What happens next?',
-          description: `📧 Email confirmation sent to ${patientEmail} | 📱 SMS sent to ${patientPhone} | 💳 Charged to ABC Insurance corporate account`,
+          description: `Email confirmation sent to ${patientEmail} | SMS sent to ${patientPhone} | Charged to ABC Insurance corporate account`,
         });
       }, 2000);
       

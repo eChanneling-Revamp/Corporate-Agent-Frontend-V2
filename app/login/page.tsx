@@ -24,7 +24,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      console.log('🔐 Attempting login for:', email);
+      console.log('[AUTH] Attempting login for:', email);
       
       const response = await fetch('http://localhost:3001/api/auth/login', {
         method: 'POST',
@@ -53,10 +53,10 @@ export default function LoginPage() {
           description: `Welcome back, ${data.data.agent?.name || data.data.user.email}!`,
         });
         
-        console.log('✅ Login successful, redirecting to dashboard...');
+        console.log('[SUCCESS] Login successful, redirecting to dashboard...');
         router.push('/dashboard');
       } else {
-        console.log('❌ Login failed:', data.message);
+        console.log('[ERROR] Login failed:', data.message);
         toast({
           title: 'Login Failed',
           description: data.message || 'Invalid email or password',
@@ -64,7 +64,7 @@ export default function LoginPage() {
         });
       }
     } catch (error) {
-      console.error('❌ Login error:', error);
+      console.error('[ERROR] Login error:', error);
       toast({
         title: 'Error',
         description: 'Unable to connect to server. Please check your connection.',
