@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,8 +27,18 @@ import { Loader2, Calendar, Clock, User, Phone, Mail } from 'lucide-react';
 import { api } from '@/lib/api';
 import { mockDoctors } from '@/lib/mock-data';
 import { Doctor } from '@/lib/types';
+import { isAuthenticated } from '@/lib/auth';
 
 export default function DoctorsPage() {
+  const router = useRouter();
+  
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      console.log('[AUTH] Not authenticated, redirecting to login...');
+      router.push('/login');
+    }
+  }, [router]);
   const { toast } = useToast();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);

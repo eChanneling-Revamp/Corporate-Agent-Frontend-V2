@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,9 +16,19 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Download, FileText, BarChart3, TrendingUp } from 'lucide-react';
+import { isAuthenticated } from '@/lib/auth';
 
 export default function ReportsPage() {
+  const router = useRouter();
   const { toast } = useToast();
+  
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      console.log('[AUTH] Not authenticated, redirecting to login...');
+      router.push('/login');
+    }
+  }, [router]);
   const [reportType, setReportType] = useState('appointments');
   const [dateFrom, setDateFrom] = useState('2025-10-01');
   const [dateTo, setDateTo] = useState('2025-11-01');

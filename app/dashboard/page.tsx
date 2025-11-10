@@ -23,6 +23,7 @@ import {
 import { api } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/lib/auth';
 
 interface Notification {
   id: string;
@@ -41,6 +42,14 @@ export default function DashboardPage() {
   const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Check authentication on component mount
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      console.log('[AUTH] Not authenticated, redirecting to login...');
+      router.push('/login');
+    }
+  }, [router]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {

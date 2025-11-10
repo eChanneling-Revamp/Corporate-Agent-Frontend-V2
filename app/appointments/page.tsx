@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,8 +29,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Search, Calendar, X, Eye, Loader2, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Appointment } from '@/lib/types';
+import { isAuthenticated } from '@/lib/auth';
 
 export default function AppointmentsPage() {
+  const router = useRouter();
   const { toast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +46,14 @@ export default function AppointmentsPage() {
     useState<Appointment | null>(null);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
+
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      console.log('[AUTH] Not authenticated, redirecting to login...');
+      router.push('/login');
+    }
+  }, [router]);
 
   const fetchAppointments = async () => {
     try {

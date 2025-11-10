@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,9 +11,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { User, Lock, Key, Save, Copy, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { isAuthenticated } from '@/lib/auth';
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { toast } = useToast();
+  
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      console.log('[AUTH] Not authenticated, redirecting to login...');
+      router.push('/login');
+    }
+  }, [router]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
@@ -212,9 +223,17 @@ export default function SettingsPage() {
       setChangingPassword(true);
 
       console.log('Changing password...');
+      
+      // Get auth token from localStorage
+      const token = localStorage.getItem('accessToken');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/auth/change-password`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           currentPassword,
           newPassword

@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { isAuthenticated } from '@/lib/auth';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,7 +41,16 @@ interface BulkAppointmentRow {
 }
 
 export default function BulkBookingPage() {
+  const router = useRouter();
   const { toast } = useToast();
+  
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      console.log('[AUTH] Not authenticated, redirecting to login...');
+      router.push('/login');
+    }
+  }, [router]);
   
   // Available doctors in the database
   const availableDoctors = [
