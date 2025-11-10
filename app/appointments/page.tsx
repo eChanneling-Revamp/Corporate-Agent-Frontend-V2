@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Calendar, X, Eye, Loader2 } from 'lucide-react';
+import { Search, Calendar, X, Eye, Loader2, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Appointment } from '@/lib/types';
 
@@ -43,27 +43,33 @@ export default function AppointmentsPage() {
     useState<Appointment | null>(null);
   const [cancelReason, setCancelReason] = useState('');
 
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        setLoading(true);
-        const apiAppointments = await api.appointments.getAll();
-        setAppointments(apiAppointments);
-      } catch (error) {
-        console.error('Failed to fetch appointments:', error);
-        toast({
-          title: 'Error Loading Appointments',
-          description: 'Failed to load appointments from database',
-          variant: 'destructive',
-        });
-        setAppointments([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchAppointments = async () => {
+    try {
+      setLoading(true);
+      const apiAppointments = await api.appointments.getAll();
+      setAppointments(apiAppointments);
+    } catch (error) {
+      console.error('Failed to fetch appointments:', error);
+      toast({
+        title: 'Error Loading Appointments',
+        description: 'Failed to load appointments from database',
+        variant: 'destructive',
+      });
+      setAppointments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchAppointments();
   }, [toast]);
+
+  // Auto-refresh every 30 seconds to catch updates from ACB actions
+  useEffect(() => {
+    const interval = setInterval(fetchAppointments, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const filteredAppointments = appointments.filter((apt) => {
     const matchesSearch =
@@ -87,7 +93,7 @@ export default function AppointmentsPage() {
     return matchesSearch && matchesDoctor && matchesHospital && matchesTab;
   });
 
-  const handleCancelAppointment = () => {
+  const handleCancelAppointment = async () => {
     if (!cancelReason.trim()) {
       toast({
         title: 'Cancellation Reason Required',
@@ -97,12 +103,39 @@ export default function AppointmentsPage() {
       return;
     }
 
-    toast({
-      title: 'Appointment Cancelled',
-      description: `Appointment ${selectedAppointment?.id} has been cancelled`,
-    });
-    setShowCancelDialog(false);
-    setCancelReason('');
+    if (!selectedAppointment) return;
+
+    try {
+      // Call the API to cancel the appointment
+      await api.appointments.cancel(selectedAppointment.id, cancelReason);
+      
+      // Update local state
+      setAppointments(prev => 
+        prev.map(apt => 
+          apt.id === selectedAppointment.id 
+            ? { ...apt, status: 'CANCELLED' as any }
+            : apt
+        )
+      );
+
+      toast({
+        title: 'Appointment Cancelled',
+        description: `Appointment ${selectedAppointment.id} has been cancelled successfully`,
+      });
+      
+      setShowCancelDialog(false);
+      setCancelReason('');
+      
+      // Refresh appointments to get updated data
+      await fetchAppointments();
+    } catch (error) {
+      console.error('[ERROR] Failed to cancel appointment:', error);
+      toast({
+        title: 'Cancel Failed',
+        description: 'Failed to cancel appointment. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -225,6 +258,18 @@ export default function AppointmentsPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="flex justify-end mt-4">
+              <Button 
+                variant="outline" 
+                onClick={fetchAppointments}
+                disabled={loading}
+                className="flex items-center space-x-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </Button>
             </div>
           </CardContent>
         </Card>
