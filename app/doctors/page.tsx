@@ -134,15 +134,15 @@ export default function DoctorsPage() {
       const response = await api.appointments.create(bookingData);
       
       toast({
-        title: 'Appointment Booked Successfully!',
-        description: `Booking confirmation sent to ${patientEmail}. Appointment ID: ${response.id || 'Generated'}`,
+        title: 'Appointment Request Received!',
+        description: `Your appointment is pending confirmation. Notification sent to ${patientEmail}`,
       });
 
       // Show detailed success information
       setTimeout(() => {
         toast({
           title: 'What happens next?',
-          description: `Email confirmation sent to ${patientEmail} | SMS sent to ${patientPhone} | Charged to ABC Insurance corporate account`,
+          description: `Your corporate agent will review and confirm your appointment. You'll receive a confirmation email once approved.`,
         });
       }, 2000);
       

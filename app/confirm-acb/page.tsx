@@ -62,7 +62,9 @@ export default function ConfirmACBPage() {
       apt.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       apt.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       apt.hospital.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    // Only show pending appointments (exclude confirmed/cancelled)
+    const isPending = apt.status === 'pending';
+    return matchesSearch && isPending;
   });
 
   const handleConfirm = (appointment: Appointment) => {
@@ -77,6 +79,9 @@ export default function ConfirmACBPage() {
       setConfirmLoading(true);
       await api.appointments.confirm(selectedAppointment.id);
       
+      // Immediately remove the confirmed appointment from local state for instant feedback
+      setAppointments(prev => prev.filter(apt => apt.id !== selectedAppointment.id));
+      
       toast({
         title: 'Appointment Confirmed',
         description: `Appointment for ${selectedAppointment.patientName} has been confirmed successfully. Email notification sent.`,
@@ -85,7 +90,7 @@ export default function ConfirmACBPage() {
       setShowConfirmDialog(false);
       setSelectedAppointment(null);
       
-      // Refresh the appointments list
+      // Refresh the appointments list to ensure consistency
       await fetchUnpaidAppointments();
     } catch (error) {
       console.error('Failed to confirm appointment:', error);
@@ -121,6 +126,9 @@ export default function ConfirmACBPage() {
       setCancelLoading(true);
       await api.appointments.cancel(selectedAppointment.id, cancelReason.trim());
       
+      // Immediately remove the cancelled appointment from local state for instant feedback
+      setAppointments(prev => prev.filter(apt => apt.id !== selectedAppointment.id));
+      
       toast({
         title: 'Appointment Cancelled',
         description: `Appointment for ${selectedAppointment.patientName} has been cancelled. Email notification sent.`,
@@ -130,7 +138,7 @@ export default function ConfirmACBPage() {
       setSelectedAppointment(null);
       setCancelReason('');
       
-      // Refresh the appointments list
+      // Refresh the appointments list to ensure consistency
       await fetchUnpaidAppointments();
     } catch (error) {
       console.error('Failed to cancel appointment:', error);
