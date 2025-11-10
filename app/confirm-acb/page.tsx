@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -26,33 +27,34 @@ export default function ConfirmACBPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] =
-    useState<Appointment | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+
+  const fetchUnpaidAppointments = async () => {
+    try {
+      setLoading(true);
+      // Use the correct unpaid appointments endpoint
+      const response = await api.appointments.getUnpaid();
+      setAppointments(Array.isArray(response) ? response : (response as any)?.data || []);
+    } catch (error) {
+      console.error('Failed to fetch unpaid appointments:', error);
+      toast({
+        title: 'Error Loading Appointments',
+        description: 'Failed to load unpaid appointments from database',
+        variant: 'destructive',
+      });
+      setAppointments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUnpaidAppointments = async () => {
-      try {
-        setLoading(true);
-        const allAppointments = await api.appointments.getAll();
-        const unpaidAppointments = allAppointments.filter(
-          (apt: any) => apt.paymentStatus === 'pending'
-        );
-        setAppointments(unpaidAppointments);
-      } catch (error) {
-        console.error('Failed to fetch unpaid appointments:', error);
-        toast({
-          title: 'Error Loading Appointments',
-          description: 'Failed to load unpaid appointments from database',
-          variant: 'destructive',
-        });
-        setAppointments([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUnpaidAppointments();
-  }, [toast]);
+  }, []);
 
   const filteredAppointments = appointments.filter((apt) => {
     const matchesSearch =
@@ -68,20 +70,78 @@ export default function ConfirmACBPage() {
     setShowConfirmDialog(true);
   };
 
-  const handleConfirmSubmit = () => {
-    toast({
-      title: 'Appointment Confirmed',
-      description: `Appointment ${selectedAppointment?.id} has been confirmed successfully`,
-    });
-    setShowConfirmDialog(false);
+  const handleConfirmSubmit = async () => {
+    if (!selectedAppointment) return;
+
+    try {
+      setConfirmLoading(true);
+      await api.appointments.confirm(selectedAppointment.id);
+      
+      toast({
+        title: 'Appointment Confirmed',
+        description: `Appointment for ${selectedAppointment.patientName} has been confirmed successfully. Email notification sent.`,
+      });
+      
+      setShowConfirmDialog(false);
+      setSelectedAppointment(null);
+      
+      // Refresh the appointments list
+      await fetchUnpaidAppointments();
+    } catch (error) {
+      console.error('Failed to confirm appointment:', error);
+      toast({
+        title: 'Confirmation Failed',
+        description: 'Failed to confirm appointment. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setConfirmLoading(false);
+    }
   };
 
-  const handleCancel = (appointmentId: string) => {
-    toast({
-      title: 'Appointment Cancelled',
-      description: `Appointment ${appointmentId} has been cancelled`,
-      variant: 'destructive',
-    });
+  const handleCancel = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setCancelReason('');
+    setShowCancelDialog(true);
+  };
+
+  const handleCancelSubmit = async () => {
+    if (!selectedAppointment) return;
+
+    if (!cancelReason.trim()) {
+      toast({
+        title: 'Cancellation Reason Required',
+        description: 'Please provide a reason for cancellation.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setCancelLoading(true);
+      await api.appointments.cancel(selectedAppointment.id, cancelReason.trim());
+      
+      toast({
+        title: 'Appointment Cancelled',
+        description: `Appointment for ${selectedAppointment.patientName} has been cancelled. Email notification sent.`,
+      });
+      
+      setShowCancelDialog(false);
+      setSelectedAppointment(null);
+      setCancelReason('');
+      
+      // Refresh the appointments list
+      await fetchUnpaidAppointments();
+    } catch (error) {
+      console.error('Failed to cancel appointment:', error);
+      toast({
+        title: 'Cancellation Failed',
+        description: 'Failed to cancel appointment. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setCancelLoading(false);
+    }
   };
 
   return (
@@ -138,7 +198,30 @@ export default function ConfirmACBPage() {
             </div>
 
             <div className="space-y-4">
-              {filteredAppointments.map((appointment) => (
+              {loading ? (
+                <div className="text-center py-16">
+                  <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-amber-600" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    Loading ACB Appointments...
+                  </h3>
+                  <p className="text-gray-600">
+                    Fetching pending appointments for confirmation
+                  </p>
+                </div>
+              ) : filteredAppointments.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="bg-emerald-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="h-12 w-12 text-emerald-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    All Caught Up!
+                  </h3>
+                  <p className="text-gray-600">
+                    No pending appointments to confirm
+                  </p>
+                </div>
+              ) : (
+                filteredAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
                   className="p-6 rounded-xl border-2 border-gray-200 hover:border-amber-300 hover:shadow-md transition-all duration-200"
@@ -220,7 +303,7 @@ export default function ConfirmACBPage() {
                             variant="outline"
                             size="sm"
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => handleCancel(appointment.id)}
+                            onClick={() => handleCancel(appointment)}
                           >
                             <X className="h-4 w-4 mr-2" />
                             Cancel
@@ -238,9 +321,10 @@ export default function ConfirmACBPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+              ))
+              )}
 
-              {filteredAppointments.length === 0 && (
+              {filteredAppointments.length === 0 && !loading && (
                 <div className="text-center py-16">
                   <div className="bg-emerald-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
                     <CheckCircle2 className="h-12 w-12 text-emerald-600" />
@@ -315,9 +399,8 @@ export default function ConfirmACBPage() {
 
               <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
                 <p className="text-xs text-blue-700">
-                  <strong>Note:</strong> By confirming this appointment, you
-                  acknowledge that the patient will be notified and the time
-                  slot will be reserved.
+                  <strong>Note:</strong> By confirming this appointment, the patient will be notified via email
+                  and the appointment will be marked as confirmed in the system.
                 </p>
               </div>
 
@@ -326,14 +409,123 @@ export default function ConfirmACBPage() {
                   variant="outline"
                   onClick={() => setShowConfirmDialog(false)}
                   className="flex-1"
+                  disabled={confirmLoading}
                 >
                   Go Back
                 </Button>
                 <Button
                   onClick={handleConfirmSubmit}
                   className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
+                  disabled={confirmLoading}
                 >
-                  Confirm & Notify
+                  {confirmLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Confirming...
+                    </>
+                  ) : (
+                    'Confirm & Notify'
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Appointment</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for cancelling this appointment
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedAppointment && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-red-50 border border-red-200">
+                <div className="flex items-center space-x-2 mb-3">
+                  <X className="h-5 w-5 text-red-600" />
+                  <p className="text-sm font-semibold text-gray-900">
+                    Appointment to Cancel
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-xs text-gray-600">Patient:</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {selectedAppointment.patientName}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-gray-600">Doctor:</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {selectedAppointment.doctorName}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-gray-600">Date & Time:</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {selectedAppointment.date} • {selectedAppointment.time}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-gray-600">ID:</span>
+                    <span className="text-xs text-gray-600">
+                      {selectedAppointment.id}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cancelReason">Cancellation Reason *</Label>
+                <Textarea
+                  id="cancelReason"
+                  placeholder="Please provide a reason for cancelling this appointment..."
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  className="min-h-[100px]"
+                />
+                <p className="text-xs text-gray-500">
+                  This reason will be included in the cancellation email sent to the patient.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                <p className="text-xs text-amber-700">
+                  <strong>Warning:</strong> This action cannot be undone. The patient will be notified
+                  immediately via email about the cancellation.
+                </p>
+              </div>
+
+              <div className="flex space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCancelDialog(false);
+                    setCancelReason('');
+                  }}
+                  className="flex-1"
+                  disabled={cancelLoading}
+                >
+                  Go Back
+                </Button>
+                <Button
+                  onClick={handleCancelSubmit}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  disabled={cancelLoading || !cancelReason.trim()}
+                >
+                  {cancelLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Cancelling...
+                    </>
+                  ) : (
+                    'Cancel Appointment'
+                  )}
                 </Button>
               </div>
             </div>

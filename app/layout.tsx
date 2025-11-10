@@ -20,8 +20,8 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <script dangerouslySetInnerHTML={{
           __html: `
-            // GLOBAL FETCH OVERRIDE - Clean version
-            if (typeof window !== 'undefined') {
+            // GLOBAL FETCH OVERRIDE - Disabled for local development
+            if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
               const originalFetch = window.fetch;
               window.fetch = function(url, options) {
                 if (typeof url === 'string' && url.includes('localhost')) {

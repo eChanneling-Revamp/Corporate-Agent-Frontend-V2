@@ -1,14 +1,18 @@
 import { Agent, Doctor, Appointment, Payment, Report, DashboardStats } from './types';
 
-// FINAL ATTEMPT - RUNTIME API URL OVERRIDE
+// DEVELOPMENT OVERRIDE - Use local API when running locally
 const API_BASE = (() => {
-  // ALWAYS use production API in browser
+  // Use local API when running in development
   if (typeof window !== 'undefined') {
-    // Force production API URL regardless of environment
+    // Check if running on localhost
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:3001/api';
+    }
+    // Use production API for deployed frontend
     return 'https://corporate-agent-backend-v2.onrender.com/api';
   }
-  // Server-side fallback (should never be used in static export)
-  return 'https://corporate-agent-backend-v2.onrender.com/api';
+  // Server-side fallback
+  return 'http://localhost:3001/api';
 })();
 
 // Clean production logging
@@ -74,21 +78,30 @@ export const api = {
       return response.json();
     },
     getUnpaid: async (): Promise<Appointment[]> => {
-      const response = await fetch(`${API_BASE}/appointments/unpaid`);
+      // Add timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      const response = await fetch(`${API_BASE}/appointments/unpaid?_t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       return response.json();
     },
     confirm: async (id: string): Promise<Appointment> => {
-      const response = await fetch(`${API_BASE}/appointments/confirm/${id}`, {
-        method: 'PUT',
+      const response = await fetch(`${API_BASE}/appointments/${id}/confirm`, {
+        method: 'POST',
       });
       return response.json();
     },
     cancel: async (id: string, reason: string): Promise<void> => {
-      await fetch(`${API_BASE}/appointments/${id}`, {
-        method: 'DELETE',
+      const response = await fetch(`${API_BASE}/appointments/${id}/cancel`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason }),
       });
+      return response.json();
     },
   },
 
