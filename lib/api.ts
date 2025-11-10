@@ -78,7 +78,15 @@ export const api = {
       return response.json();
     },
     getUnpaid: async (): Promise<Appointment[]> => {
-      const response = await fetch(`${API_BASE}/appointments/unpaid`);
+      // Add timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      const response = await fetch(`${API_BASE}/appointments/unpaid?_t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       return response.json();
     },
     confirm: async (id: string): Promise<Appointment> => {
