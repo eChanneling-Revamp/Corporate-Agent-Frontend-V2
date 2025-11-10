@@ -157,4 +157,30 @@ export const api = {
       return response.json();
     },
   },
+
+  notifications: {
+    getAll: async (): Promise<any> => {
+      const timestamp = new Date().getTime();
+      const response = await fetch(`${API_BASE}/notifications?_t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      return response.json();
+    },
+    markAsRead: async (id: string): Promise<any> => {
+      const response = await fetch(`${API_BASE}/notifications/${id}/read`, {
+        method: 'PATCH',
+      });
+      return response.json();
+    },
+    markAllAsRead: async (): Promise<any> => {
+      const response = await fetch(`${API_BASE}/notifications/read-all`, {
+        method: 'PATCH',
+      });
+      return response.json();
+    },
+  },
 };

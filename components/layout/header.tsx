@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Search, Bell, User, LogOut, Settings, Menu } from 'lucide-react';
+import { api } from '@/lib/api';
 
 interface HeaderProps {
   title: string;
@@ -22,12 +23,94 @@ interface HeaderProps {
   onMenuClick?: () => void;
 }
 
+interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  appointmentId: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
+
 export function Header({ title, breadcrumbs, onMenuClick }: HeaderProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Fetch notifications on mount and set up polling
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await api.notifications.getAll();
+        if (response.success) {
+          setNotifications(response.data);
+          setUnreadCount(response.unreadCount);
+        }
+      } catch (error) {
+        console.error('Failed to fetch notifications:', error);
+      }
+    };
+
+    fetchNotifications();
+    // Poll for new notifications every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = () => {
     router.push('/login');
+  };
+
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await api.notifications.markAsRead(id);
+      setNotifications(prev => 
+        prev.map(n => n.id === id ? { ...n, isRead: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await api.notifications.markAllAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
+  };
+
+  const getNotificationColor = (type: string) => {
+    switch (type) {
+      case 'APPOINTMENT_RECEIVED':
+        return 'bg-cyan-50 border-cyan-200';
+      case 'APPOINTMENT_CONFIRMED':
+        return 'bg-green-50 border-green-200';
+      case 'APPOINTMENT_CANCELLED':
+        return 'bg-red-50 border-red-200';
+      default:
+        return 'bg-gray-50 border-gray-200';
+    }
+  };
+
+  const formatTime = (date: string) => {
+    const now = new Date();
+    const notifDate = new Date(date);
+    const diffMs = now.getTime() - notifDate.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return notifDate.toLocaleDateString();
   };
 
   return (
@@ -100,39 +183,60 @@ export function Header({ title, breadcrumbs, onMenuClick }: HeaderProps) {
                 className="relative hover:bg-gray-100"
               >
                 <Bell className="h-5 w-5 text-gray-600" />
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs">
-                  3
-                </Badge>
+                {unreadCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+                )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-96 max-h-[500px] overflow-y-auto">
+              <div className="flex items-center justify-between px-4 py-2">
+                <DropdownMenuLabel className="p-0">Notifications</DropdownMenuLabel>
+                {unreadCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto py-1 px-2 text-xs text-cyan-600 hover:text-cyan-700"
+                    onClick={handleMarkAllAsRead}
+                  >
+                    Mark all read
+                  </Button>
+                )}
+              </div>
               <DropdownMenuSeparator />
-              <div className="space-y-2 p-2">
-                <div className="p-3 rounded-lg bg-cyan-50 border border-cyan-200">
-                  <p className="text-sm font-medium text-gray-900">
-                    New appointment confirmed
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Dr. Sarah Johnson - 5 Nov, 9:00 AM
-                  </p>
-                </div>
-                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-                  <p className="text-sm font-medium text-gray-900">
-                    Payment received
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Rs. 3,000 - Transaction #TXN123456
-                  </p>
-                </div>
-                <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
-                  <p className="text-sm font-medium text-gray-900">
-                    Bulk booking completed
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    15 appointments created successfully
-                  </p>
-                </div>
+              <div className="space-y-2 p-2 max-h-[400px] overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500">
+                    <Bell className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                    <p className="text-sm">No notifications yet</p>
+                  </div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      className={`p-3 rounded-lg border cursor-pointer hover:shadow-sm transition-shadow ${
+                        getNotificationColor(notif.type)
+                      } ${!notif.isRead ? 'ring-2 ring-cyan-400 ring-opacity-50' : ''}`}
+                      onClick={() => !notif.isRead && handleMarkAsRead(notif.id)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <p className="text-sm font-medium text-gray-900 flex-1">
+                          {notif.title}
+                        </p>
+                        {!notif.isRead && (
+                          <span className="h-2 w-2 rounded-full bg-cyan-500 flex-shrink-0 ml-2 mt-1" />
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {notif.message}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-2">
+                        {formatTime(notif.createdAt)}
+                      </p>
+                    </div>
+                  ))
+                )}
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
