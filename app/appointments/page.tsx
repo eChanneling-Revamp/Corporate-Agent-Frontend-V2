@@ -42,6 +42,7 @@ export default function AppointmentsPage() {
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
   const [cancelReason, setCancelReason] = useState('');
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   const fetchAppointments = async () => {
     try {
@@ -106,14 +107,16 @@ export default function AppointmentsPage() {
     if (!selectedAppointment) return;
 
     try {
+      setCancelLoading(true);
+      
       // Call the API to cancel the appointment
       await api.appointments.cancel(selectedAppointment.id, cancelReason);
       
-      // Update local state
+      // Immediately update local state for instant feedback
       setAppointments(prev => 
         prev.map(apt => 
           apt.id === selectedAppointment.id 
-            ? { ...apt, status: 'CANCELLED' as any }
+            ? { ...apt, status: 'cancelled' as any }
             : apt
         )
       );
@@ -135,6 +138,8 @@ export default function AppointmentsPage() {
         description: 'Failed to cancel appointment. Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setCancelLoading(false);
     }
   };
 
@@ -468,14 +473,23 @@ export default function AppointmentsPage() {
                 variant="outline"
                 onClick={() => setShowCancelDialog(false)}
                 className="flex-1"
+                disabled={cancelLoading}
               >
                 Go Back
               </Button>
               <Button
                 onClick={handleCancelAppointment}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                disabled={cancelLoading}
               >
-                Confirm Cancellation
+                {cancelLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Cancelling...
+                  </>
+                ) : (
+                  'Confirm Cancellation'
+                )}
               </Button>
             </div>
           </div>

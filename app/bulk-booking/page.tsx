@@ -62,6 +62,7 @@ export default function BulkBookingPage() {
     },
   ]);
   const [isValidating, setIsValidating] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
 
   const addRow = () => {
     setRows([
@@ -128,74 +129,89 @@ export default function BulkBookingPage() {
     }, 1000);
   };
 
-  const handleBulkBooking = () => {
-    (async () => {
-      const validRows = rows.filter((row) => row.status === 'valid');
+  const handleBulkBooking = async () => {
+    const validRows = rows.filter((row) => row.status === 'valid');
 
-      if (validRows.length === 0) {
+    if (validRows.length === 0) {
+      toast({
+        title: 'No Valid Entries',
+        description: 'Please validate your data first',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsBooking(true);
+
+    toast({
+      title: 'Booking in Progress',
+      description: `Processing ${validRows.length} appointments...`,
+    });
+
+    // prepare payload expected by backend
+    const payload = validRows.map((r) => ({
+      doctorName: r.doctorName,
+      patientName: r.patientName,
+      patientEmail: r.patientEmail,
+      patientPhone: r.patientPhone,
+      date: r.date,
+      time: r.time,
+    }));
+
+    try {
+      const response = await api.appointments.bulkCreate(payload);
+
+      if (!response || response.success === false) {
+        console.error('Bulk booking failed:', response);
         toast({
-          title: 'No Valid Entries',
-          description: 'Please validate your data first',
+          title: 'Bulk booking failed',
+          description: response?.message || 'Unknown error',
           variant: 'destructive',
         });
         return;
       }
 
-      toast({
-        title: 'Booking in Progress',
-        description: `Processing ${validRows.length} appointments...`,
-      });
+      // Check if there are any failures
+      const created = response.data?.created?.length || 0;
+      const failed = response.data?.failed?.length || 0;
 
-      // prepare payload expected by backend
-      const payload = validRows.map((r) => ({
-        doctorName: r.doctorName,
-        patientName: r.patientName,
-        patientEmail: r.patientEmail,
-        patientPhone: r.patientPhone,
-        date: r.date,
-        time: r.time,
-      }));
-
-      try {
-        const response = await api.appointments.bulkCreate(payload);
-
-        if (!response || response.success === false) {
-          console.error('Bulk booking failed:', response);
-          toast({
-            title: 'Bulk booking failed',
-            description: response?.message || 'Unknown error',
-            variant: 'destructive',
-          });
-          return;
-        }
-
+      if (failed > 0) {
+        toast({
+          title: 'Bulk Booking Partially Complete',
+          description: `${created} appointments created, ${failed} failed. Check console for details.`,
+          variant: 'default',
+        });
+        console.log('Failed appointments:', response.data?.failed);
+      } else {
         toast({
           title: 'Bulk Booking Complete',
-          description: response.message || `${validRows.length} appointments created successfully`,
-        });
-
-        // reset rows
-        setRows([
-          {
-            id: '1',
-            doctorName: '',
-            patientName: '',
-            patientEmail: '',
-            patientPhone: '',
-            date: '',
-            time: '',
-            status: 'pending',
-          },
-        ]);
-      } catch (err) {
-        console.error('Bulk booking error:', err);
-        toast({
-          title: 'Bulk booking failed',
-          description: (err as Error)?.message || 'Network or server error',
-          variant: 'destructive',
+          description: `All ${created} appointments created successfully! Confirmation emails sent.`,
         });
       }
-    })();
+
+      // reset rows
+      setRows([
+        {
+          id: '1',
+          doctorName: '',
+          patientName: '',
+          patientEmail: '',
+          patientPhone: '',
+          date: '',
+          time: '',
+          status: 'pending',
+        },
+      ]);
+    } catch (err) {
+      console.error('Bulk booking error:', err);
+      toast({
+        title: 'Bulk booking failed',
+        description: (err as Error)?.message || 'Network or server error',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -528,10 +544,17 @@ export default function BulkBookingPage() {
               <Button
                 size="lg"
                 onClick={handleBulkBooking}
-                disabled={validCount === 0}
+                disabled={validCount === 0 || isBooking}
                 className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-8"
               >
-                Book All Appointments
+                {isBooking ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    Booking...
+                  </>
+                ) : (
+                  'Book All Appointments'
+                )}
               </Button>
             </div>
           </CardContent>
