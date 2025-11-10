@@ -60,7 +60,7 @@ export const api = {
       });
       return response.json();
     },
-    bulkCreate: async (data: any[]): Promise<Appointment[]> => {
+    bulkCreate: async (data: any[]): Promise<any> => {
       const response = await fetch(`${API_BASE}/appointments/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

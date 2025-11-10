@@ -1,12 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import { api } from '@/lib/api';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import {
   Upload,
@@ -32,6 +40,15 @@ interface BulkAppointmentRow {
 
 export default function BulkBookingPage() {
   const { toast } = useToast();
+  
+  // Available doctors in the database
+  const availableDoctors = [
+    'Dr. Saman Perera',
+    'Dr. Nimal Fernando', 
+    'Dr. Kamala Silva',
+    'Dr. Rajesh Gupta'
+  ];
+  
   const [rows, setRows] = useState<BulkAppointmentRow[]>([
     {
       id: '1',
@@ -112,40 +129,73 @@ export default function BulkBookingPage() {
   };
 
   const handleBulkBooking = () => {
-    const validRows = rows.filter((row) => row.status === 'valid');
+    (async () => {
+      const validRows = rows.filter((row) => row.status === 'valid');
 
-    if (validRows.length === 0) {
+      if (validRows.length === 0) {
+        toast({
+          title: 'No Valid Entries',
+          description: 'Please validate your data first',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       toast({
-        title: 'No Valid Entries',
-        description: 'Please validate your data first',
-        variant: 'destructive',
+        title: 'Booking in Progress',
+        description: `Processing ${validRows.length} appointments...`,
       });
-      return;
-    }
 
-    toast({
-      title: 'Booking in Progress',
-      description: `Processing ${validRows.length} appointments...`,
-    });
+      // prepare payload expected by backend
+      const payload = validRows.map((r) => ({
+        doctorName: r.doctorName,
+        patientName: r.patientName,
+        patientEmail: r.patientEmail,
+        patientPhone: r.patientPhone,
+        date: r.date,
+        time: r.time,
+      }));
 
-    setTimeout(() => {
-      toast({
-        title: 'Bulk Booking Complete',
-        description: `${validRows.length} appointments created successfully`,
-      });
-      setRows([
-        {
-          id: '1',
-          doctorName: '',
-          patientName: '',
-          patientEmail: '',
-          patientPhone: '',
-          date: '',
-          time: '',
-          status: 'pending',
-        },
-      ]);
-    }, 2000);
+      try {
+        const response = await api.appointments.bulkCreate(payload);
+
+        if (!response || response.success === false) {
+          console.error('Bulk booking failed:', response);
+          toast({
+            title: 'Bulk booking failed',
+            description: response?.message || 'Unknown error',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        toast({
+          title: 'Bulk Booking Complete',
+          description: response.message || `${validRows.length} appointments created successfully`,
+        });
+
+        // reset rows
+        setRows([
+          {
+            id: '1',
+            doctorName: '',
+            patientName: '',
+            patientEmail: '',
+            patientPhone: '',
+            date: '',
+            time: '',
+            status: 'pending',
+          },
+        ]);
+      } catch (err) {
+        console.error('Bulk booking error:', err);
+        toast({
+          title: 'Bulk booking failed',
+          description: (err as Error)?.message || 'Network or server error',
+          variant: 'destructive',
+        });
+      }
+    })();
   };
 
   const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,21 +210,21 @@ export default function BulkBookingPage() {
         const sampleData: BulkAppointmentRow[] = [
           {
             id: '1',
-            doctorName: 'Dr. Sarah Johnson',
+            doctorName: 'Dr. Saman Perera',
             patientName: 'John Smith',
             patientEmail: 'john@example.com',
             patientPhone: '+94771234567',
-            date: '2025-11-10',
+            date: '2025-11-15',
             time: '09:00',
             status: 'pending',
           },
           {
             id: '2',
-            doctorName: 'Dr. Michael Chen',
+            doctorName: 'Dr. Nimal Fernando',
             patientName: 'Jane Doe',
             patientEmail: 'jane@example.com',
             patientPhone: '+94771234568',
-            date: '2025-11-11',
+            date: '2025-11-15',
             time: '10:00',
             status: 'pending',
           },
@@ -190,7 +240,7 @@ export default function BulkBookingPage() {
 
   const downloadTemplate = () => {
     const csvContent =
-      'Doctor Name,Patient Name,Patient Email,Patient Phone,Date,Time\nDr. Sarah Johnson,John Smith,john@example.com,+94771234567,2025-11-10,09:00';
+      'Doctor Name,Patient Name,Patient Email,Patient Phone,Date,Time\nDr. Saman Perera,John Smith,john@example.com,+94771234567,2025-11-15,09:00\nDr. Nimal Fernando,Jane Doe,jane@example.com,+94771234568,2025-11-15,10:00\nDr. Kamala Silva,Bob Wilson,bob@example.com,+94771234569,2025-11-16,11:00\nDr. Rajesh Gupta,Alice Brown,alice@example.com,+94771234570,2025-11-16,14:00';
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -227,6 +277,30 @@ export default function BulkBookingPage() {
       ]}
     >
       <div className="space-y-6">
+        {/* Available Doctors Info */}
+        <Card className="border-l-4 border-l-cyan-500 bg-cyan-50/50">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="bg-cyan-100 rounded-full p-2">
+                <AlertCircle className="h-5 w-5 text-cyan-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Available Doctors</h3>
+                <p className="text-sm text-gray-600 mb-2">
+                  Please select from the following available doctors:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {availableDoctors.map((doctor) => (
+                    <Badge key={doctor} variant="secondary" className="bg-cyan-100 text-cyan-700">
+                      {doctor}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="border-none shadow-lg">
             <CardContent className="p-6">
@@ -337,14 +411,23 @@ export default function BulkBookingPage() {
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <Label className="text-xs">Doctor Name</Label>
-                        <Input
-                          placeholder="Dr. Name"
+                        <Select
                           value={row.doctorName}
-                          onChange={(e) =>
-                            updateRow(row.id, 'doctorName', e.target.value)
+                          onValueChange={(value) =>
+                            updateRow(row.id, 'doctorName', value)
                           }
-                          className="mt-1"
-                        />
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select Doctor" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableDoctors.map((doctor) => (
+                              <SelectItem key={doctor} value={doctor}>
+                                {doctor}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div>
