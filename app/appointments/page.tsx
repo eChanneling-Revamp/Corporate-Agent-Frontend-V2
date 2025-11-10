@@ -72,6 +72,10 @@ export default function AppointmentsPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Extract unique doctors and hospitals from appointments
+  const uniqueDoctors = Array.from(new Set(appointments.map(apt => apt.doctorName))).sort();
+  const uniqueHospitals = Array.from(new Set(appointments.map(apt => apt.hospital))).sort();
+
   const filteredAppointments = appointments.filter((apt) => {
     const matchesSearch =
       searchQuery === '' ||
@@ -82,13 +86,17 @@ export default function AppointmentsPage() {
     const matchesHospital =
       filterHospital === 'all' || apt.hospital === filterHospital;
 
+    // Handle status filtering with case-insensitive comparison
+    const status = apt.status.toLowerCase();
     let matchesTab = false;
     if (selectedTab === 'upcoming') {
-      matchesTab = apt.status === 'confirmed' || apt.status === 'pending';
+      matchesTab = status === 'confirmed' || status === 'pending';
     } else if (selectedTab === 'completed') {
-      matchesTab = apt.status === 'completed';
+      matchesTab = status === 'completed';
     } else if (selectedTab === 'cancelled') {
-      matchesTab = apt.status === 'cancelled';
+      matchesTab = status === 'cancelled';
+    } else {
+      matchesTab = true; // Show all if no tab selected
     }
 
     return matchesSearch && matchesDoctor && matchesHospital && matchesTab;
@@ -230,15 +238,11 @@ export default function AppointmentsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Doctors</SelectItem>
-                    <SelectItem value="Dr. Sarah Johnson">
-                      Dr. Sarah Johnson
-                    </SelectItem>
-                    <SelectItem value="Dr. Michael Chen">
-                      Dr. Michael Chen
-                    </SelectItem>
-                    <SelectItem value="Dr. Emily Roberts">
-                      Dr. Emily Roberts
-                    </SelectItem>
+                    {uniqueDoctors.map((doctor) => (
+                      <SelectItem key={doctor} value={doctor}>
+                        {doctor}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -251,15 +255,11 @@ export default function AppointmentsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Hospitals</SelectItem>
-                    <SelectItem value="City General Hospital">
-                      City General Hospital
-                    </SelectItem>
-                    <SelectItem value="St. Mary Medical Center">
-                      St. Mary Medical Center
-                    </SelectItem>
-                    <SelectItem value="Metropolitan Hospital">
-                      Metropolitan Hospital
-                    </SelectItem>
+                    {uniqueHospitals.map((hospital) => (
+                      <SelectItem key={hospital} value={hospital}>
+                        {hospital}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -206,36 +206,36 @@ export function Header({ title, breadcrumbs, onMenuClick }: HeaderProps) {
               </div>
               <DropdownMenuSeparator />
               <div className="space-y-2 p-2 max-h-[400px] overflow-y-auto">
-                {notifications.length === 0 ? (
+                {notifications.filter(n => !n.isRead).length === 0 ? (
                   <div className="p-8 text-center text-gray-500">
                     <Bell className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                    <p className="text-sm">No notifications yet</p>
+                    <p className="text-sm">No new notifications</p>
                   </div>
                 ) : (
-                  notifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      className={`p-3 rounded-lg border cursor-pointer hover:shadow-sm transition-shadow ${
-                        getNotificationColor(notif.type)
-                      } ${!notif.isRead ? 'ring-2 ring-cyan-400 ring-opacity-50' : ''}`}
-                      onClick={() => !notif.isRead && handleMarkAsRead(notif.id)}
-                    >
-                      <div className="flex items-start justify-between">
-                        <p className="text-sm font-medium text-gray-900 flex-1">
-                          {notif.title}
-                        </p>
-                        {!notif.isRead && (
+                  notifications
+                    .filter(n => !n.isRead)
+                    .map((notif) => (
+                      <div
+                        key={notif.id}
+                        className={`p-3 rounded-lg border cursor-pointer hover:shadow-sm transition-shadow ${
+                          getNotificationColor(notif.type)
+                        } ring-2 ring-cyan-400 ring-opacity-50`}
+                        onClick={() => handleMarkAsRead(notif.id)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <p className="text-sm font-medium text-gray-900 flex-1">
+                            {notif.title}
+                          </p>
                           <span className="h-2 w-2 rounded-full bg-cyan-500 flex-shrink-0 ml-2 mt-1" />
-                        )}
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1">
+                          {notif.message}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-2">
+                          {formatTime(notif.createdAt)}
+                        </p>
                       </div>
-                      <p className="text-xs text-gray-600 mt-1">
-                        {notif.message}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-2">
-                        {formatTime(notif.createdAt)}
-                      </p>
-                    </div>
-                  ))
+                    ))
                 )}
               </div>
             </DropdownMenuContent>

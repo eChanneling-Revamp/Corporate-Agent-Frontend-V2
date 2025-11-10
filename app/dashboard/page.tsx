@@ -16,29 +16,48 @@ import {
   ArrowRight,
   Plus,
   Loader2,
+  Bell,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+
+interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  appointmentId: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
 
 export default function DashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [stats, setStats] = useState<any>(null);
   const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const [dashboardStats, appointments] = await Promise.all([
+        const [dashboardStats, appointments, notificationsResponse] = await Promise.all([
           api.dashboard.getStats(),
-          api.appointments.getAll()
+          api.appointments.getAll(),
+          api.notifications.getAll()
         ]);
         
         setStats(dashboardStats);
         setRecentAppointments(appointments.slice(0, 5));
+        
+        if (notificationsResponse.success) {
+          setNotifications(notificationsResponse.data.slice(0, 5)); // Get latest 5 notifications
+        }
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
         toast({
@@ -124,6 +143,50 @@ export default function DashboardPage() {
       default:
         return 'bg-gray-100 text-gray-700 border-gray-200';
     }
+  };
+
+  const getNotificationStyle = (type: string) => {
+    switch (type) {
+      case 'APPOINTMENT_RECEIVED':
+        return {
+          bg: 'bg-cyan-50 border-cyan-200',
+          iconBg: 'bg-cyan-500',
+          icon: Bell
+        };
+      case 'APPOINTMENT_CONFIRMED':
+        return {
+          bg: 'bg-emerald-50 border-emerald-200',
+          iconBg: 'bg-emerald-500',
+          icon: CheckCircle
+        };
+      case 'APPOINTMENT_CANCELLED':
+        return {
+          bg: 'bg-red-50 border-red-200',
+          iconBg: 'bg-red-500',
+          icon: XCircle
+        };
+      default:
+        return {
+          bg: 'bg-blue-50 border-blue-200',
+          iconBg: 'bg-blue-500',
+          icon: Calendar
+        };
+    }
+  };
+
+  const formatTime = (date: string) => {
+    const now = new Date();
+    const notifDate = new Date(date);
+    const diffMs = now.getTime() - notifDate.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return notifDate.toLocaleDateString();
   };
 
   if (loading) {
@@ -288,61 +351,46 @@ export default function DashboardPage() {
           <Card className="border-none shadow-lg">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">
-                Notifications
+                Recent Notifications
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-cyan-50 border border-cyan-200">
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-cyan-500 p-2 rounded-lg">
-                      <Calendar className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">
-                        Appointment Confirmed
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Dr. Sarah Johnson confirmed for tomorrow at 9:00 AM
-                      </p>
-                      <p className="text-xs text-gray-400 mt-2">2 hours ago</p>
-                    </div>
+                {notifications.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500">
+                    <Bell className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                    <p className="text-sm">No notifications yet</p>
                   </div>
-                </div>
+                ) : (
+                  notifications.map((notif) => {
+                    const style = getNotificationStyle(notif.type);
+                    const Icon = style.icon;
 
-                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-emerald-500 p-2 rounded-lg">
-                      <DollarSign className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">
-                        Payment Received
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Rs. 3,000 payment processed successfully
-                      </p>
-                      <p className="text-xs text-gray-400 mt-2">5 hours ago</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-blue-500 p-2 rounded-lg">
-                      <Users className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">
-                        Bulk Booking Complete
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        15 appointments created successfully
-                      </p>
-                      <p className="text-xs text-gray-400 mt-2">1 day ago</p>
-                    </div>
-                  </div>
-                </div>
+                    return (
+                      <div
+                        key={notif.id}
+                        className={`p-4 rounded-xl border ${style.bg}`}
+                      >
+                        <div className="flex items-start space-x-3">
+                          <div className={`${style.iconBg} p-2 rounded-lg`}>
+                            <Icon className="h-4 w-4 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900">
+                              {notif.title}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {notif.message}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-2">
+                              {formatTime(notif.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </CardContent>
           </Card>
