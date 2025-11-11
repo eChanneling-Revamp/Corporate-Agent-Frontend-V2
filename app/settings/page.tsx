@@ -29,7 +29,7 @@ export default function SettingsPage() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [agentName, setAgentName] = useState('');
   const [companyName, setCompanyName] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(''); // Single email for both login and contact
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [memberSince, setMemberSince] = useState('');
@@ -75,7 +75,8 @@ export default function SettingsPage() {
         
         setAgentName(profile.name || '');
         setCompanyName(profile.companyName || '');
-        setEmail(profile.email || '');
+        // Use loginEmail from backend if available, fallback to agent email
+        setEmail(profile.loginEmail || profile.email || '');
         setPhone(profile.phone || '');
         setAddress(profile.address || '');
         
@@ -151,16 +152,38 @@ export default function SettingsPage() {
       if (response.success) {
         // Update local state with the returned data
         if (response.data) {
+          const newEmail = response.data.loginEmail || response.data.email;
+          
           setAgentName(response.data.name || agentName);
           setCompanyName(response.data.companyName || companyName);
-          setEmail(response.data.email || email);
+          setEmail(newEmail || email);
           setPhone(response.data.phone || phone);
           setAddress(response.data.address || address);
+
+          // Update localStorage with the new agent data
+          try {
+            localStorage.setItem('agent', JSON.stringify(response.data));
+            
+            // Also update the user email in localStorage (login email)
+            const userData = localStorage.getItem('user');
+            if (userData && newEmail) {
+              const user = JSON.parse(userData);
+              user.email = newEmail;
+              localStorage.setItem('user', JSON.stringify(user));
+              console.log('[SETTINGS] Updated user login email in localStorage:', newEmail);
+            }
+            
+            // Dispatch custom event to notify header component
+            window.dispatchEvent(new Event('agentUpdated'));
+            console.log('[SETTINGS] Updated agent in localStorage:', response.data);
+          } catch (error) {
+            console.error('[SETTINGS] Failed to update localStorage:', error);
+          }
         }
         
         toast({
           title: 'Profile Updated',
-          description: 'Your profile has been updated successfully',
+          description: 'Your profile has been updated successfully. Use this email to login next time.',
         });
       } else {
         throw new Error(response.message || 'Update failed');
@@ -369,8 +392,12 @@ export default function SettingsPage() {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           className="mt-2"
-                          placeholder="agent@company.com"
+                          placeholder="your.email@company.com"
+                          required
                         />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Used for both login and business communications
+                        </p>
                       </div>
 
                       <div>

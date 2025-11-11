@@ -38,6 +38,46 @@ export function Header({ title, breadcrumbs, onMenuClick }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [agentName, setAgentName] = useState('Corporate Agent');
+  const [agentEmail, setAgentEmail] = useState('agent@echannelling.com');
+
+  // Load agent info from localStorage
+  useEffect(() => {
+    const loadAgentInfo = () => {
+      try {
+        const agentData = localStorage.getItem('agent');
+        if (agentData) {
+          const agent = JSON.parse(agentData);
+          setAgentName(agent.name || 'Corporate Agent');
+          setAgentEmail(agent.email || 'agent@echannelling.com');
+        }
+      } catch (error) {
+        console.error('Failed to load agent info:', error);
+      }
+    };
+
+    loadAgentInfo();
+
+    // Listen for storage changes (when profile is updated)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'agent') {
+        loadAgentInfo();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom event for same-tab updates
+    const handleAgentUpdate = () => {
+      loadAgentInfo();
+    };
+    window.addEventListener('agentUpdated', handleAgentUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('agentUpdated', handleAgentUpdate);
+    };
+  }, []);
 
   // Fetch notifications on mount and set up polling
   useEffect(() => {
@@ -277,15 +317,15 @@ export function Header({ title, breadcrumbs, onMenuClick }: HeaderProps) {
               >
                 <Avatar className="h-9 w-9 flex-shrink-0">
                   <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold">
-                    CA
+                    {agentName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'CA'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-left hidden lg:block flex-shrink-0">
                   <p className="text-sm font-medium text-gray-900 whitespace-nowrap">
-                    Corporate Agent
+                    {agentName}
                   </p>
                   <p className="text-xs text-gray-500 whitespace-nowrap">
-                    agent@echannelling.com
+                    {agentEmail}
                   </p>
                 </div>
               </Button>
