@@ -20,6 +20,23 @@ if (typeof window !== 'undefined') {
   console.log('[CONFIG] Production API configured:', API_BASE);
 }
 
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  // Get token from localStorage
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+  
+  return headers;
+};
+
 export const api = {
   auth: {
     login: async (email: string, password: string) => {
@@ -28,10 +45,36 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      return response.json();
+      const data = await response.json();
+      
+      // Store tokens in localStorage if login successful
+      if (data.success && data.data?.tokens) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('accessToken', data.data.tokens.accessToken);
+          localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
+          localStorage.setItem('agentInfo', JSON.stringify(data.data.agent));
+          console.log('[AUTH] Tokens stored successfully');
+        }
+      }
+      
+      return data;
     },
     logout: async () => {
-      const response = await fetch(`${API_BASE}/auth/logout`, { method: 'POST' });
+      const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
+      const response = await fetch(`${API_BASE}/auth/logout`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken })
+      });
+      
+      // Clear tokens from localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('agentInfo');
+        console.log('[AUTH] Tokens cleared');
+      }
+      
       return response.json();
     },
   },
@@ -59,7 +102,7 @@ export const api = {
     create: async (data: any): Promise<Appointment> => {
       const response = await fetch(`${API_BASE}/appointments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
       });
       return response.json();
@@ -67,7 +110,7 @@ export const api = {
     bulkCreate: async (data: any[]): Promise<any> => {
       const response = await fetch(`${API_BASE}/appointments/bulk`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
       });
       return response.json();
@@ -145,14 +188,46 @@ export const api = {
 
   profile: {
     get: async (): Promise<Agent> => {
-      const response = await fetch(`${API_BASE}/profile`);
+      const response = await fetch(`${API_BASE}/profile`, {
+        headers: getAuthHeaders(),
+      });
       return response.json();
     },
     update: async (data: any): Promise<Agent> => {
       const response = await fetch(`${API_BASE}/profile`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+  },
+
+  notifications: {
+    getAll: async (): Promise<any> => {
+      const timestamp = new Date().getTime();
+      const authHeaders = getAuthHeaders();
+      const response = await fetch(`${API_BASE}/notifications?_t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          ...authHeaders,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      return response.json();
+    },
+    markAsRead: async (id: string): Promise<any> => {
+      const response = await fetch(`${API_BASE}/notifications/${id}/read`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+      });
+      return response.json();
+    },
+    markAllAsRead: async (): Promise<any> => {
+      const response = await fetch(`${API_BASE}/notifications/read-all`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
       });
       return response.json();
     },

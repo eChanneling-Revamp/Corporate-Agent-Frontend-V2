@@ -72,11 +72,37 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = () => {
-    // Clear any stored authentication data
-    localStorage.removeItem('authToken');
-    // Redirect to login page
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      // Get refresh token
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      // Call backend logout endpoint
+      if (refreshToken) {
+        await fetch('http://localhost:3001/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken })
+        });
+      }
+      
+      // Clear all auth data from localStorage
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      localStorage.removeItem('agent');
+      localStorage.removeItem('authToken'); // legacy
+      
+      console.log('[AUTH] Logged out successfully');
+      
+      // Redirect to login
+      router.push('/login');
+    } catch (error) {
+      console.error('[AUTH] Logout error:', error);
+      // Still clear local data and redirect even if API call fails
+      localStorage.clear();
+      router.push('/login');
+    }
   };
 
   return (

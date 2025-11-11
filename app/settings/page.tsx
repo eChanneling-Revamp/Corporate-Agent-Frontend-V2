@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,14 +9,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { User, Lock, Key, Save, Copy, Eye, EyeOff } from 'lucide-react';
+import { User, Lock, Key, Save, Copy, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { api } from '@/lib/api';
+import { isAuthenticated } from '@/lib/auth';
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { toast } = useToast();
-  const [companyName, setCompanyName] = useState('ABC Corporate Solutions');
-  const [email, setEmail] = useState('agent@echannelling.com');
-  const [phone, setPhone] = useState('+94 77 123 4567');
-  const [address, setAddress] = useState('123 Main Street, Colombo');
+  
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      console.log('[AUTH] Not authenticated, redirecting to login...');
+      router.push('/login');
+    }
+  }, [router]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [agentName, setAgentName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [memberSince, setMemberSince] = useState('');
+  const [totalBookings, setTotalBookings] = useState(0);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -23,6 +41,79 @@ export default function SettingsPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Fetch profile data on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        console.log('=== SETTINGS PAGE: Starting Profile Fetch ===');
+        console.log('API Base URL:', 'http://localhost:3001/api');
+        
+        const [profileResponse, appointmentsResponse] = await Promise.all([
+          api.profile.get(),
+          api.appointments.getAll()
+        ]);
+
+        console.log('=== RAW API RESPONSES ===');
+        console.log('Profile Response (RAW):', JSON.stringify(profileResponse, null, 2));
+        console.log('Appointments Response (RAW):', appointmentsResponse);
+
+        // Handle profile response - backend returns {success: true, data: {...}}
+        const profileData: any = profileResponse;
+        const profile = profileData.data || profileData;
+        
+        console.log('=== EXTRACTED DATA ===');
+        console.log('Profile Object:', JSON.stringify(profile, null, 2));
+        
+        console.log('=== SETTING STATE VALUES ===');
+        console.log('Setting agentName to:', profile.name);
+        console.log('Setting companyName to:', profile.companyName);
+        console.log('Setting email to:', profile.email);
+        console.log('Setting phone to:', profile.phone);
+        console.log('Setting address to:', profile.address);
+        
+        setAgentName(profile.name || '');
+        setCompanyName(profile.companyName || '');
+        setEmail(profile.email || '');
+        setPhone(profile.phone || '');
+        setAddress(profile.address || '');
+        
+        if (profile.createdAt) {
+          const memberDate = new Date(profile.createdAt).toLocaleDateString('en-US', { 
+            month: 'long', 
+            year: 'numeric' 
+          });
+          setMemberSince(memberDate);
+          console.log('Setting memberSince to:', memberDate);
+        }
+
+        // Count total appointments for this agent
+        const appointments: any = appointmentsResponse;
+        if (Array.isArray(appointments)) {
+          setTotalBookings(appointments.length);
+          console.log('Setting totalBookings to:', appointments.length);
+        } else if (appointments.data && Array.isArray(appointments.data)) {
+          setTotalBookings(appointments.data.length);
+          console.log('Setting totalBookings to:', appointments.data.length);
+        }
+        
+        console.log('=== STATE UPDATE COMPLETE ===');
+      } catch (error) {
+        console.error('=== ERROR FETCHING PROFILE ===', error);
+        toast({
+          title: 'Error Loading Profile',
+          description: 'Failed to load profile data',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+        console.log('=== PROFILE FETCH FINISHED ===');
+      }
+    };
+
+    fetchProfile();
+  }, [toast]);
 
   const apiKeys = [
     {
@@ -41,14 +132,70 @@ export default function SettingsPage() {
     },
   ];
 
-  const handleUpdateProfile = () => {
-    toast({
-      title: 'Profile Updated',
-      description: 'Your profile has been updated successfully',
-    });
+  const handleUpdateProfile = async () => {
+    try {
+      setSaving(true);
+      
+      const updateData = {
+        name: agentName,
+        companyName,
+        email,
+        phone,
+        address
+      };
+
+      console.log('Updating profile with:', updateData);
+      const response: any = await api.profile.update(updateData);
+      console.log('Update response:', response);
+
+      if (response.success) {
+        // Update local state with the returned data
+        if (response.data) {
+          setAgentName(response.data.name || agentName);
+          setCompanyName(response.data.companyName || companyName);
+          setEmail(response.data.email || email);
+          setPhone(response.data.phone || phone);
+          setAddress(response.data.address || address);
+        }
+        
+        toast({
+          title: 'Profile Updated',
+          description: 'Your profile has been updated successfully',
+        });
+      } else {
+        throw new Error(response.message || 'Update failed');
+      }
+    } catch (error: any) {
+      console.error('Failed to update profile:', error);
+      toast({
+        title: 'Update Failed',
+        description: error.message || 'Failed to update profile. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast({
+        title: 'Missing Fields',
+        description: 'Please fill in all password fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      toast({
+        title: 'Password Too Short',
+        description: 'Password must be at least 8 characters long',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       toast({
         title: 'Password Mismatch',
@@ -58,13 +205,65 @@ export default function SettingsPage() {
       return;
     }
 
-    toast({
-      title: 'Password Changed',
-      description: 'Your password has been changed successfully',
-    });
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    // Validate password strength
+    const hasUpperCase = /[A-Z]/.test(newPassword);
+    const hasLowerCase = /[a-z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber) {
+      toast({
+        title: 'Weak Password',
+        description: 'Password must contain uppercase, lowercase, and numbers',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+
+      console.log('Changing password...');
+      
+      // Get auth token from localStorage
+      const token = localStorage.getItem('accessToken');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/auth/change-password`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          currentPassword,
+          newPassword
+        })
+      });
+
+      const data = await response.json();
+      console.log('Password change response:', data);
+
+      if (response.ok && data.success) {
+        toast({
+          title: 'Password Changed',
+          description: data.message || 'Your password has been changed successfully',
+        });
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        throw new Error(data.message || 'Failed to change password');
+      }
+    } catch (error: any) {
+      console.error('Failed to change password:', error);
+      toast({
+        title: 'Password Change Failed',
+        description: error.message || 'Failed to change password. Please check your current password.',
+        variant: 'destructive',
+      });
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   const handleCopyKey = (key: string) => {
@@ -81,6 +280,19 @@ export default function SettingsPage() {
       description: 'A new API key has been generated successfully',
     });
   };
+
+  // Debug render values
+  if (typeof window !== 'undefined') {
+    console.log('=== RENDER: Current State Values ===');
+    console.log('agentName:', agentName);
+    console.log('companyName:', companyName);
+    console.log('email:', email);
+    console.log('phone:', phone);
+    console.log('address:', address);
+    console.log('memberSince:', memberSince);
+    console.log('totalBookings:', totalBookings);
+    console.log('===================================');
+  }
 
   return (
     <DashboardLayout
@@ -113,66 +325,97 @@ export default function SettingsPage() {
                 <CardTitle>Company Information</CardTitle>
               </CardHeader>
               <CardContent>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleUpdateProfile();
-                  }}
-                  className="space-y-6"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="companyName">Company Name</Label>
-                      <Input
-                        id="companyName"
-                        value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                        className="mt-2"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="mt-2"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="mt-2"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="address">Business Address</Label>
-                      <Input
-                        id="address"
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        className="mt-2"
-                      />
-                    </div>
+                {loading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+                    <span className="ml-2 text-gray-600">Loading profile...</span>
                   </div>
+                ) : (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleUpdateProfile();
+                    }}
+                    className="space-y-6"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="agentName">Agent Name</Label>
+                        <Input
+                          id="agentName"
+                          value={agentName}
+                          onChange={(e) => setAgentName(e.target.value)}
+                          className="mt-2"
+                          placeholder="Enter your name"
+                        />
+                      </div>
 
-                  <div className="pt-6 border-t border-gray-200 flex justify-end">
-                    <Button
-                      type="submit"
-                      className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
-                    </Button>
-                  </div>
-                </form>
+                      <div>
+                        <Label htmlFor="companyName">Company Name</Label>
+                        <Input
+                          id="companyName"
+                          value={companyName}
+                          onChange={(e) => setCompanyName(e.target.value)}
+                          className="mt-2"
+                          placeholder="Enter company name"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="mt-2"
+                          placeholder="agent@company.com"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input
+                          id="phone"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                        className="mt-2"
+                      />
+                    </div>
+
+                      <div>
+                        <Label htmlFor="address">Business Address</Label>
+                        <Input
+                          id="address"
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          className="mt-2"
+                          placeholder="Enter business address"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-gray-200 flex justify-end">
+                      <Button
+                        type="submit"
+                        disabled={saving}
+                        className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+                      >
+                        {saving ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4 mr-2" />
+                            Save Changes
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                )}
               </CardContent>
             </Card>
 
@@ -181,26 +424,32 @@ export default function SettingsPage() {
                 <CardTitle>Account Statistics</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="p-4 rounded-xl bg-cyan-50 border border-cyan-200">
-                    <p className="text-sm text-gray-600 mb-1">Member Since</p>
-                    <p className="text-lg font-bold text-gray-900">
-                      January 2025
-                    </p>
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
                   </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="p-4 rounded-xl bg-cyan-50 border border-cyan-200">
+                      <p className="text-sm text-gray-600 mb-1">Member Since</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {memberSince || 'N/A'}
+                      </p>
+                    </div>
 
-                  <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
-                    <p className="text-sm text-gray-600 mb-1">
-                      Total Bookings
-                    </p>
-                    <p className="text-lg font-bold text-gray-900">1,248</p>
-                  </div>
+                    <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
+                      <p className="text-sm text-gray-600 mb-1">
+                        Total Bookings
+                      </p>
+                      <p className="text-lg font-bold text-gray-900">{totalBookings.toLocaleString()}</p>
+                    </div>
 
-                  <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
-                    <p className="text-sm text-gray-600 mb-1">Account Type</p>
-                    <p className="text-lg font-bold text-gray-900">Corporate</p>
+                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                      <p className="text-sm text-gray-600 mb-1">Account Type</p>
+                      <p className="text-lg font-bold text-gray-900">Corporate Agent</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -301,10 +550,20 @@ export default function SettingsPage() {
                   <div className="pt-6 border-t border-gray-200 flex justify-end">
                     <Button
                       type="submit"
+                      disabled={changingPassword}
                       className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
                     >
-                      <Lock className="h-4 w-4 mr-2" />
-                      Update Password
+                      {changingPassword ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="h-4 w-4 mr-2" />
+                          Update Password
+                        </>
+                      )}
                     </Button>
                   </div>
                 </form>

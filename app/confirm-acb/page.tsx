@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,9 +21,19 @@ import { useToast } from '@/hooks/use-toast';
 import { Search, CheckCircle2, X, Calendar, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Appointment } from '@/lib/types';
+import { isAuthenticated } from '@/lib/auth';
 
 export default function ConfirmACBPage() {
+  const router = useRouter();
   const { toast } = useToast();
+  
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      console.log('[AUTH] Not authenticated, redirecting to login...');
+      router.push('/login');
+    }
+  }, [router]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -174,7 +185,7 @@ export default function ConfirmACBPage() {
                 <p className="text-sm text-gray-600">
                   You have{' '}
                   <span className="font-bold text-amber-700">
-                    {appointments.length}
+                    {filteredAppointments.length}
                   </span>{' '}
                   appointments waiting for confirmation. Please review and
                   confirm or cancel each appointment.
@@ -182,7 +193,7 @@ export default function ConfirmACBPage() {
               </div>
               <div className="text-right">
                 <p className="text-3xl font-bold text-amber-600">
-                  {appointments.length}
+                  {filteredAppointments.length}
                 </p>
                 <p className="text-sm text-gray-600">Pending</p>
               </div>
