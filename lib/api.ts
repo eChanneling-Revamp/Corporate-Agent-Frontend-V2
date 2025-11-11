@@ -149,14 +149,29 @@ export const api = {
   },
 
   payments: {
-    getAll: async (): Promise<Payment[]> => {
-      const response = await fetch(`${API_BASE}/payments`);
+    getAll: async (filters?: any): Promise<any> => {
+      const params = filters ? `?${new URLSearchParams(filters)}` : '';
+      const response = await fetch(`${API_BASE}/payments${params}`, {
+        headers: getAuthHeaders(),
+      });
+      return response.json();
+    },
+    getStats: async (): Promise<any> => {
+      const response = await fetch(`${API_BASE}/payments/stats`, {
+        headers: getAuthHeaders(),
+      });
+      return response.json();
+    },
+    getById: async (id: string): Promise<any> => {
+      const response = await fetch(`${API_BASE}/payments/${id}`, {
+        headers: getAuthHeaders(),
+      });
       return response.json();
     },
     create: async (data: any): Promise<Payment> => {
       const response = await fetch(`${API_BASE}/payments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
       });
       return response.json();
@@ -164,7 +179,7 @@ export const api = {
     updateStatus: async (id: string, status: string): Promise<Payment> => {
       const response = await fetch(`${API_BASE}/payments/${id}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ status }),
       });
       return response.json();
@@ -172,16 +187,31 @@ export const api = {
   },
 
   reports: {
-    generate: async (filters: any): Promise<Report> => {
+    generate: async (filters: any): Promise<any> => {
       const response = await fetch(`${API_BASE}/reports/generate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(filters),
       });
       return response.json();
     },
-    getAll: async (): Promise<Report[]> => {
-      const response = await fetch(`${API_BASE}/reports`);
+    getAll: async (): Promise<any> => {
+      const response = await fetch(`${API_BASE}/reports`, {
+        headers: getAuthHeaders(),
+      });
+      return response.json();
+    },
+    getById: async (id: string): Promise<any> => {
+      const response = await fetch(`${API_BASE}/reports/${id}`, {
+        headers: getAuthHeaders(),
+      });
+      return response.json();
+    },
+    delete: async (id: string): Promise<any> => {
+      const response = await fetch(`${API_BASE}/reports/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
       return response.json();
     },
   },

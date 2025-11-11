@@ -6,12 +6,72 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Download, CreditCard, TrendingUp, Loader2 } from 'lucide-react';
+import { 
+  Search, 
+  Download, 
+  CreditCard, 
+  TrendingUp, 
+  Loader2, 
+  DollarSign,
+  Clock,
+  CheckCircle2,
+  Filter,
+  FileText,
+  ArrowUpDown
+} from 'lucide-react';
 import { api } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
+
+interface Payment {
+  id: string;
+  appointmentId: string;
+  transactionId: string;
+  method: string;
+  amount: number;
+  status: string;
+  date: string;
+  processedAt: string | null;
+  doctorName: string;
+  patientName: string;
+  patientEmail: string;
+  patientPhone: string;
+  hospital: string;
+  specialty: string;
+  notes: string | null;
+}
+
+interface PaymentStats {
+  totalRevenue: number;
+  pendingAmount: number;
+  totalPayments: number;
+  paidCount: number;
+  pendingCount: number;
+  failedCount: number;
+  averagePayment: number;
+  paymentMethods: {
+    card: number;
+    bankTransfer: number;
+    cash: number;
+    wallet: number;
+  };
+}
 
 export default function PaymentsPage() {
   const router = useRouter();
@@ -24,21 +84,49 @@ export default function PaymentsPage() {
       router.push('/login');
     }
   }, [router]);
-  const [payments, setPayments] = useState<any[]>([]);
+
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [stats, setStats] = useState<PaymentStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [methodFilter, setMethodFilter] = useState('all');
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
+  // Fetch payments and stats
   useEffect(() => {
-    const fetchPayments = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const apiPayments = await api.payments.getAll();
-        setPayments(apiPayments);
+        
+        // Fetch payments with filters
+        const filters: any = {};
+        if (statusFilter !== 'all') filters.status = statusFilter;
+        if (methodFilter !== 'all') filters.method = methodFilter;
+        
+        const [paymentsResponse, statsResponse] = await Promise.all([
+          api.payments.getAll(filters),
+          api.payments.getStats()
+        ]);
+
+        console.log('[PAYMENTS] Fetched payments:', paymentsResponse);
+        console.log('[PAYMENTS] Fetched stats:', statsResponse);
+
+        if (paymentsResponse.success) {
+          setPayments(paymentsResponse.data || []);
+        } else {
+          setPayments([]);
+        }
+
+        if (statsResponse.success) {
+          setStats(statsResponse.data);
+        }
       } catch (error) {
-        console.error('Failed to fetch payments:', error);
+        console.error('Failed to fetch payment data:', error);
         toast({
-          title: 'Error Loading Payments',
-          description: 'Failed to load payments from database',
+          title: 'Error Loading Data',
+          description: 'Failed to load payment information',
           variant: 'destructive',
         });
         setPayments([]);
@@ -47,47 +135,155 @@ export default function PaymentsPage() {
       }
     };
 
-    fetchPayments();
-  }, [toast]);
+    fetchData();
+  }, [statusFilter, methodFilter, toast]);
 
-  const filteredPayments = payments.filter((payment: any) => {
-    const matchesSearch =
-      searchQuery === '' ||
-      payment.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      payment.transactionId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      payment.appointmentId.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
-  });
-
-  const totalRevenue = payments
-    .filter((p: any) => p.status === 'paid')
-    .reduce((sum: number, p: any) => sum + p.amount, 0);
-  const pendingAmount = payments
-    .filter((p: any) => p.status === 'pending')
-    .reduce((sum: number, p: any) => sum + p.amount, 0);
+  // Filter and sort payments
+  const filteredPayments = payments
+    .filter((payment) => {
+      const matchesSearch =
+        searchQuery === '' ||
+        payment.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        payment.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        payment.transactionId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        payment.id.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'date') {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      } else {
+        return sortOrder === 'asc' ? a.amount - b.amount : b.amount - a.amount;
+      }
+    });
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'paid':
         return 'bg-emerald-100 text-emerald-700 border-emerald-200';
       case 'pending':
         return 'bg-amber-100 text-amber-700 border-amber-200';
       case 'failed':
         return 'bg-red-100 text-red-700 border-red-200';
+      case 'refunded':
+        return 'bg-purple-100 text-purple-700 border-purple-200';
+      case 'cancelled':
+        return 'bg-gray-100 text-gray-700 border-gray-200';
       default:
         return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
-  const getMethodIcon = (method: string) => {
-    return <CreditCard className="h-4 w-4" />;
+  const getMethodBadge = (method: string) => {
+    const methodMap: Record<string, { icon: any; label: string; color: string }> = {
+      card: { icon: CreditCard, label: 'Card', color: 'bg-blue-100 text-blue-700' },
+      bank_transfer: { icon: DollarSign, label: 'Bank', color: 'bg-purple-100 text-purple-700' },
+      cash: { icon: DollarSign, label: 'Cash', color: 'bg-green-100 text-green-700' },
+      wallet: { icon: DollarSign, label: 'Wallet', color: 'bg-orange-100 text-orange-700' },
+    };
+
+    const methodData = methodMap[method.toLowerCase()] || methodMap.card;
+    const Icon = methodData.icon;
+
+    return (
+      <Badge className={`${methodData.color} border-0`}>
+        <Icon className="h-3 w-3 mr-1" />
+        {methodData.label}
+      </Badge>
+    );
   };
 
-  const handleDownloadInvoice = (paymentId: string) => {
-    toast({
-      title: 'Invoice Downloaded',
-      description: `Invoice for payment ${paymentId} has been downloaded`,
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'LKR',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const handleExportCSV = () => {
+    try {
+      const headers = [
+        'Transaction ID',
+        'Patient Name',
+        'Doctor Name',
+        'Hospital',
+        'Amount',
+        'Method',
+        'Status',
+        'Date',
+      ];
+
+      const csvData = filteredPayments.map(p => [
+        p.transactionId,
+        p.patientName,
+        p.doctorName,
+        p.hospital,
+        p.amount.toString(),
+        p.method,
+        p.status,
+        formatDate(p.date),
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `payments-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+
+      toast({
+        title: 'Export Successful',
+        description: 'Payment data exported to CSV',
+      });
+    } catch (error) {
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export payment data',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDownloadInvoice = (payment: Payment) => {
+    toast({
+      title: 'Generating Invoice',
+      description: `Generating invoice for ${payment.transactionId}...`,
+    });
+
+    // Simulate invoice generation
+    setTimeout(() => {
+      toast({
+        title: 'Invoice Ready',
+        description: `Invoice for ${payment.transactionId} is ready for download`,
+      });
+    }, 1500);
+  };
+
+  const toggleSort = (field: 'date' | 'amount') => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
   };
 
   return (
@@ -99,200 +295,214 @@ export default function PaymentsPage() {
       ]}
     >
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="border-none shadow-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90 mb-1">Total Revenue</p>
-                  <p className="text-3xl font-bold">
-                    Rs. {(totalRevenue / 1000).toFixed(1)}K
-                  </p>
-                  <div className="flex items-center space-x-1 mt-2">
-                    <TrendingUp className="h-4 w-4" />
-                    <span className="text-sm">+12.5% from last month</span>
-                  </div>
+        {/* Statistics Cards */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
+                  <DollarSign className="h-4 w-4 text-white" />
                 </div>
-                <div className="bg-white/20 p-4 rounded-xl">
-                  <CreditCard className="h-8 w-8" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {stats.paidCount} paid transactions
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card className="border-none shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">
-                    Pending Payments
-                  </p>
-                  <p className="text-3xl font-bold text-gray-900">
-                    Rs. {(pendingAmount / 1000).toFixed(1)}K
-                  </p>
-                  <Badge className="bg-amber-100 text-amber-700 border-amber-200 mt-2">
-                    {payments.filter((p: any) => p.status === 'pending').length}{' '}
-                    pending
-                  </Badge>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending Amount</CardTitle>
+                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center">
+                  <Clock className="h-4 w-4 text-white" />
                 </div>
-                <div className="bg-amber-100 p-4 rounded-xl">
-                  <CreditCard className="h-8 w-8 text-amber-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(stats.pendingAmount)}</div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {stats.pendingCount} pending transactions
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card className="border-none shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">
-                    Completed Transactions
-                  </p>
-                  <p className="text-3xl font-bold text-gray-900">
-                    {payments.filter((p: any) => p.status === 'paid').length}
-                  </p>
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 mt-2">
-                    This month
-                  </Badge>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Average Payment</CardTitle>
+                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
+                  <TrendingUp className="h-4 w-4 text-white" />
                 </div>
-                <div className="bg-emerald-100 p-4 rounded-xl">
-                  <TrendingUp className="h-8 w-8 text-emerald-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(stats.averagePayment)}</div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Per transaction
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card className="border-none shadow-lg">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Payments</CardTitle>
+                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                  <CheckCircle2 className="h-4 w-4 text-white" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalPayments}</div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {stats.failedCount} failed
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Filters and Search */}
+        <Card>
           <CardHeader>
             <CardTitle>Payment Transactions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mb-6">
-              <Label>Search Transactions</Label>
-              <div className="relative mt-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <div className="flex flex-col lg:flex-row gap-4 mb-6">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search by payment ID, transaction ID, or appointment ID..."
+                  placeholder="Search by patient, doctor, or transaction ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full lg:w-[180px]">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                  <SelectItem value="refunded">Refunded</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={methodFilter} onValueChange={setMethodFilter}>
+                <SelectTrigger className="w-full lg:w-[180px]">
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="All Methods" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Methods</SelectItem>
+                  <SelectItem value="card">Card</SelectItem>
+                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="wallet">Wallet</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button onClick={handleExportCSV} variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700">
-                      Payment ID
-                    </th>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700">
-                      Appointment ID
-                    </th>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700">
-                      Transaction ID
-                    </th>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700">
-                      Method
-                    </th>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700">
-                      Amount
-                    </th>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700">
-                      Status
-                    </th>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700">
-                      Date
-                    </th>
-                    <th className="text-right py-4 px-4 text-sm font-semibold text-gray-700">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td colSpan={8} className="py-16 text-center">
-                        <div className="flex items-center justify-center">
-                          <Loader2 className="h-6 w-6 animate-spin text-cyan-500 mr-2" />
-                          <span className="text-gray-600">Loading payments...</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : filteredPayments.map((payment: any) => (
-                    <tr
-                      key={payment.id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="py-4 px-4">
-                        <p className="text-sm font-medium text-gray-900">
-                          {payment.id}
-                        </p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm text-gray-600">
-                          {payment.appointmentId}
-                        </p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-xs font-mono text-gray-600">
-                          {payment.transactionId}
-                        </p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center space-x-2">
-                          {getMethodIcon(payment.method)}
-                          <span className="text-sm text-gray-700 capitalize">
-                            {payment.method}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm font-semibold text-gray-900">
-                          Rs. {payment.amount.toLocaleString()}
-                        </p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <Badge className={getStatusColor(payment.status)}>
-                          {payment.status}
-                        </Badge>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm text-gray-600">
-                          {new Date(payment.date).toLocaleDateString()}
-                        </p>
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDownloadInvoice(payment.id)}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {!loading && filteredPayments.length === 0 && (
-              <div className="text-center py-16">
-                <div className="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
-                  <Search className="h-12 w-12 text-gray-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  No transactions found
-                </h3>
-                <p className="text-gray-600">
-                  Try adjusting your search query
+            {/* Payments Table */}
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+                <span className="ml-3 text-gray-600">Loading payments...</span>
+              </div>
+            ) : filteredPayments.length === 0 ? (
+              <div className="text-center py-12">
+                <DollarSign className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No payments found</h3>
+                <p className="text-gray-500">
+                  {searchQuery || statusFilter !== 'all' || methodFilter !== 'all'
+                    ? 'Try adjusting your filters'
+                    : 'Payment transactions will appear here'}
                 </p>
               </div>
+            ) : (
+              <div className="rounded-md border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Transaction ID</TableHead>
+                      <TableHead>Patient</TableHead>
+                      <TableHead>Doctor</TableHead>
+                      <TableHead>Hospital</TableHead>
+                      <TableHead className="cursor-pointer" onClick={() => toggleSort('amount')}>
+                        <div className="flex items-center">
+                          Amount
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </div>
+                      </TableHead>
+                      <TableHead>Method</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="cursor-pointer" onClick={() => toggleSort('date')}>
+                        <div className="flex items-center">
+                          Date
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </div>
+                      </TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPayments.map((payment) => (
+                      <TableRow key={payment.id}>
+                        <TableCell className="font-mono text-sm">
+                          {payment.transactionId}
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{payment.patientName}</div>
+                            <div className="text-xs text-gray-500">{payment.patientPhone}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{payment.doctorName}</div>
+                            <div className="text-xs text-gray-500">{payment.specialty}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm">{payment.hospital}</TableCell>
+                        <TableCell className="font-semibold">
+                          {formatCurrency(payment.amount)}
+                        </TableCell>
+                        <TableCell>{getMethodBadge(payment.method)}</TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(payment.status)}>
+                            {payment.status.toUpperCase()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {formatDate(payment.date)}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownloadInvoice(payment)}
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
+
+            <div className="mt-4 text-sm text-gray-500 text-right">
+              Showing {filteredPayments.length} of {payments.length} payments
+            </div>
           </CardContent>
         </Card>
       </div>
