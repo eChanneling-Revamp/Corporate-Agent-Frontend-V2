@@ -110,8 +110,8 @@ export default function DashboardPage() {
     {
       title: 'Active Doctors',
       value: stats.activeDoctors.toLocaleString(),
-      change: '+5.2%',
-      trend: 'up',
+      change: stats.doctorsChange >= 0 ? `+${stats.doctorsChange}%` : `${stats.doctorsChange}%`,
+      trend: stats.doctorsChange >= 0 ? 'up' : 'down',
       icon: Users,
       color: 'from-purple-500 to-pink-500',
     },

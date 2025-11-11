@@ -311,8 +311,13 @@ export default function ConfirmACBPage() {
                             <p className="text-xl font-bold text-gray-900">
                               Rs. {appointment.amount.toLocaleString()}
                             </p>
+                            <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 mt-2">
+                              {appointment.paymentMethod === 'BILL_TO_PHONE' 
+                                ? '📱 Paid by Phone Bill' 
+                                : '💼 Paid by Salary Deduction'}
+                            </Badge>
                             <p className="text-xs text-gray-600 mt-1">
-                              ID: {appointment.id}
+                              ID: {appointment.id.slice(0, 8)}
                             </p>
                           </div>
                         </div>

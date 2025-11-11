@@ -31,12 +31,16 @@ export interface Appointment {
   doctorId: string;
   doctorName: string;
   patientName: string;
+  patientNIC?: string;
   patientEmail: string;
   patientPhone: string;
   date: string;
   time: string;
   status: 'confirmed' | 'pending' | 'cancelled' | 'completed';
   paymentStatus: 'paid' | 'pending' | 'failed';
+  paymentMethod?: 'BILL_TO_PHONE' | 'DEDUCT_FROM_SALARY';
+  sltPhoneNumber?: string;
+  employeeNIC?: string;
   amount: number;
   hospital: string;
   specialty: string;

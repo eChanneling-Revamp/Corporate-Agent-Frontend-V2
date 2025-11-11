@@ -34,7 +34,8 @@ import {
   CheckCircle2,
   Filter,
   FileText,
-  ArrowUpDown
+  ArrowUpDown,
+  Phone
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
@@ -178,6 +179,10 @@ export default function PaymentsPage() {
 
   const getMethodBadge = (method: string) => {
     const methodMap: Record<string, { icon: any; label: string; color: string }> = {
+      BILL_TO_PHONE: { icon: Phone, label: 'Bill to Phone', color: 'bg-purple-100 text-purple-700' },
+      DEDUCT_FROM_SALARY: { icon: DollarSign, label: 'Salary Deduction', color: 'bg-blue-100 text-blue-700' },
+      bill_to_phone: { icon: Phone, label: 'Bill to Phone', color: 'bg-purple-100 text-purple-700' },
+      deduct_from_salary: { icon: DollarSign, label: 'Salary Deduction', color: 'bg-blue-100 text-blue-700' },
       card: { icon: CreditCard, label: 'Card', color: 'bg-blue-100 text-blue-700' },
       bank_transfer: { icon: DollarSign, label: 'Bank', color: 'bg-purple-100 text-purple-700' },
       cash: { icon: DollarSign, label: 'Cash', color: 'bg-green-100 text-green-700' },
@@ -263,18 +268,134 @@ export default function PaymentsPage() {
   };
 
   const handleDownloadInvoice = (payment: Payment) => {
-    toast({
-      title: 'Generating Invoice',
-      description: `Generating invoice for ${payment.transactionId}...`,
-    });
-
-    // Simulate invoice generation
-    setTimeout(() => {
-      toast({
-        title: 'Invoice Ready',
-        description: `Invoice for ${payment.transactionId} is ready for download`,
+    try {
+      // Generate HTML invoice
+      const invoiceDate = new Date(payment.date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       });
-    }, 1500);
+      
+      const paymentMethodLabel = payment.method === 'bill_to_phone' ? 'Bill to Phone' : 'Salary Deduction';
+      
+      const invoiceHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Invoice - ${payment.transactionId}</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 40px; }
+    .invoice-box { max-width: 800px; margin: auto; border: 1px solid #eee; padding: 30px; }
+    .invoice-header { text-align: center; margin-bottom: 30px; }
+    .invoice-header h1 { color: #0891b2; margin: 0; }
+    .invoice-details { margin: 30px 0; }
+    .invoice-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    .invoice-table th, .invoice-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    .invoice-table th { background-color: #f8f9fa; font-weight: bold; }
+    .total-row { font-weight: bold; font-size: 18px; background-color: #f0f9ff; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+    .info-section { background: #f8f9fa; padding: 15px; border-radius: 5px; }
+    .info-section h3 { margin: 0 0 10px 0; font-size: 14px; color: #666; }
+    .info-section p { margin: 5px 0; }
+    .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="invoice-box">
+    <div class="invoice-header">
+      <h1>PAYMENT INVOICE</h1>
+      <p style="color: #666; margin: 10px 0;">Sri Lanka Telecom - Corporate Agent</p>
+      <p style="font-size: 12px; color: #999;">SLT Head Office, Lotus Road, Colombo 01</p>
+    </div>
+    
+    <div class="invoice-details">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <div>
+          <p><strong>Invoice Number:</strong> ${payment.transactionId}</p>
+          <p><strong>Invoice Date:</strong> ${invoiceDate}</p>
+          <p><strong>Payment Status:</strong> <span style="color: #059669; font-weight: bold;">${payment.status.toUpperCase()}</span></p>
+        </div>
+        <div style="text-align: right;">
+          <p><strong>Payment Method:</strong> ${paymentMethodLabel}</p>
+          <p><strong>Appointment ID:</strong> ${payment.appointmentId.slice(0, 8)}</p>
+        </div>
+      </div>
+      
+      <div class="info-grid">
+        <div class="info-section">
+          <h3>PATIENT INFORMATION</h3>
+          <p><strong>Name:</strong> ${payment.patientName}</p>
+          <p><strong>Email:</strong> ${payment.patientEmail || 'N/A'}</p>
+          <p><strong>Phone:</strong> ${payment.patientPhone || 'N/A'}</p>
+        </div>
+        <div class="info-section">
+          <h3>DOCTOR INFORMATION</h3>
+          <p><strong>Doctor:</strong> ${payment.doctorName}</p>
+          <p><strong>Specialty:</strong> ${payment.specialty || 'N/A'}</p>
+          <p><strong>Hospital:</strong> ${payment.hospital || 'N/A'}</p>
+        </div>
+      </div>
+    </div>
+    
+    <table class="invoice-table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Quantity</th>
+          <th>Unit Price</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Medical Consultation - ${payment.specialty || 'General'}</td>
+          <td>1</td>
+          <td>Rs. ${payment.amount.toLocaleString()}</td>
+          <td>Rs. ${payment.amount.toLocaleString()}</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="3" style="text-align: right;">TOTAL AMOUNT:</td>
+          <td>Rs. ${payment.amount.toLocaleString()}</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div class="footer">
+      <p><strong>Thank you for using Sri Lanka Telecom Corporate Agent Services</strong></p>
+      <p style="font-size: 12px; margin-top: 10px;">
+        This is a computer-generated invoice and does not require a signature.<br>
+        For any queries, please contact: corporateagent@slt.lk | +94 11 212 1212
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+      `;
+      
+      // Create blob and download
+      const blob = new Blob([invoiceHTML], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Invoice-${payment.transactionId}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'Invoice Downloaded',
+        description: `Invoice ${payment.transactionId} has been downloaded. Open it in your browser to print or save as PDF.`,
+      });
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      toast({
+        title: 'Download Failed',
+        description: 'Failed to generate invoice',
+        variant: 'destructive',
+      });
+    }
   };
 
   const toggleSort = (field: 'date' | 'amount') => {
@@ -398,10 +519,8 @@ export default function PaymentsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Methods</SelectItem>
-                  <SelectItem value="card">Card</SelectItem>
-                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="wallet">Wallet</SelectItem>
+                  <SelectItem value="BILL_TO_PHONE">Bill to Phone</SelectItem>
+                  <SelectItem value="DEDUCT_FROM_SALARY">Salary Deduction</SelectItem>
                 </SelectContent>
               </Select>
 

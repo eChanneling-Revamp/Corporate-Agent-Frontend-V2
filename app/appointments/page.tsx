@@ -383,13 +383,13 @@ export default function AppointmentsPage() {
                                   Rs. {appointment.amount.toLocaleString()}
                                 </p>
                               </div>
-                              <Badge
-                                className={getPaymentStatusColor(
-                                  appointment.paymentStatus
-                                )}
-                              >
-                                {appointment.paymentStatus}
-                              </Badge>
+                              {appointment.paymentMethod && (
+                                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                                  {appointment.paymentMethod === 'BILL_TO_PHONE' 
+                                    ? '📱 Paid by Phone Bill' 
+                                    : '💼 Paid by Salary Deduction'}
+                                </Badge>
+                              )}
                             </div>
 
                             <div className="flex space-x-2">
