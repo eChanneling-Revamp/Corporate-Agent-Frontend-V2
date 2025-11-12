@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Search, CheckCircle2, X, Calendar, Loader2 } from 'lucide-react';
+import { Search, CheckCircle2, X, Calendar, Loader2, Phone, Briefcase } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Appointment } from '@/lib/types';
 import { isAuthenticated } from '@/lib/auth';
@@ -311,8 +311,21 @@ export default function ConfirmACBPage() {
                             <p className="text-xl font-bold text-gray-900">
                               Rs. {appointment.amount.toLocaleString()}
                             </p>
+                            <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 mt-2 flex items-center gap-1 w-fit">
+                              {appointment.paymentMethod === 'BILL_TO_PHONE' ? (
+                                <>
+                                  <Phone className="h-3 w-3" />
+                                  Paid by Phone Bill
+                                </>
+                              ) : (
+                                <>
+                                  <Briefcase className="h-3 w-3" />
+                                  Paid by Salary Deduction
+                                </>
+                              )}
+                            </Badge>
                             <p className="text-xs text-gray-600 mt-1">
-                              ID: {appointment.id}
+                              ID: {appointment.id.slice(0, 8)}
                             </p>
                           </div>
                         </div>

@@ -32,8 +32,12 @@ interface BulkAppointmentRow {
   id: string;
   doctorName: string;
   patientName: string;
+  patientNIC: string;
   patientEmail: string;
   patientPhone: string;
+  paymentMethod: 'BILL_TO_PHONE' | 'DEDUCT_FROM_SALARY';
+  sltPhoneNumber?: string;
+  employeeNIC?: string;
   date: string;
   time: string;
   status: 'valid' | 'invalid' | 'pending';
@@ -60,13 +64,22 @@ export default function BulkBookingPage() {
     'Dr. Rajesh Gupta'
   ];
   
+  // Available time slots (same as doctor search page)
+  const timeSlots = [
+    '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+    '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'
+  ];
+  
   const [rows, setRows] = useState<BulkAppointmentRow[]>([
     {
       id: '1',
       doctorName: '',
       patientName: '',
+      patientNIC: '',
       patientEmail: '',
       patientPhone: '',
+      paymentMethod: 'BILL_TO_PHONE',
+      sltPhoneNumber: '',
       date: '',
       time: '',
       status: 'pending',
@@ -82,8 +95,11 @@ export default function BulkBookingPage() {
         id: Date.now().toString(),
         doctorName: '',
         patientName: '',
+        patientNIC: '',
         patientEmail: '',
         patientPhone: '',
+        paymentMethod: 'BILL_TO_PHONE',
+        sltPhoneNumber: '',
         date: '',
         time: '',
         status: 'pending',
@@ -111,12 +127,17 @@ export default function BulkBookingPage() {
         if (
           !row.doctorName ||
           !row.patientName ||
+          !row.patientNIC ||
           !row.patientEmail ||
           !row.patientPhone ||
           !row.date ||
           !row.time
         ) {
           return { ...row, status: 'invalid' as const, error: 'All fields required' };
+        }
+
+        if (row.paymentMethod === 'BILL_TO_PHONE' && !row.sltPhoneNumber) {
+          return { ...row, status: 'invalid' as const, error: 'SLT phone number required for Bill to Phone' };
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -163,8 +184,12 @@ export default function BulkBookingPage() {
     const payload = validRows.map((r) => ({
       doctorName: r.doctorName,
       patientName: r.patientName,
+      patientNIC: r.patientNIC,
       patientEmail: r.patientEmail,
       patientPhone: r.patientPhone,
+      paymentMethod: r.paymentMethod,
+      sltPhoneNumber: r.sltPhoneNumber,
+      employeeNIC: r.employeeNIC,
       date: r.date,
       time: r.time,
     }));
@@ -206,8 +231,11 @@ export default function BulkBookingPage() {
           id: '1',
           doctorName: '',
           patientName: '',
+          patientNIC: '',
           patientEmail: '',
           patientPhone: '',
+          paymentMethod: 'BILL_TO_PHONE',
+          sltPhoneNumber: '',
           date: '',
           time: '',
           status: 'pending',
@@ -227,47 +255,136 @@ export default function BulkBookingPage() {
 
   const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      toast({
-        title: 'CSV Uploaded',
-        description: 'Processing your CSV file...',
-      });
+    if (!file) return;
 
-      setTimeout(() => {
-        const sampleData: BulkAppointmentRow[] = [
-          {
-            id: '1',
-            doctorName: 'Dr. Saman Perera',
-            patientName: 'John Smith',
-            patientEmail: 'john@example.com',
-            patientPhone: '+94771234567',
-            date: '2025-11-15',
-            time: '09:00',
-            status: 'pending',
-          },
-          {
-            id: '2',
-            doctorName: 'Dr. Nimal Fernando',
-            patientName: 'Jane Doe',
-            patientEmail: 'jane@example.com',
-            patientPhone: '+94771234568',
-            date: '2025-11-15',
-            time: '10:00',
-            status: 'pending',
-          },
-        ];
-        setRows(sampleData);
-        toast({
-          title: 'CSV Loaded',
-          description: `${sampleData.length} rows imported`,
-        });
-      }, 1000);
+    // Validate file type
+    if (!file.name.endsWith('.csv')) {
+      toast({
+        title: 'Invalid File',
+        description: 'Please upload a CSV file',
+        variant: 'destructive',
+      });
+      return;
     }
+
+    toast({
+      title: 'CSV Uploaded',
+      description: 'Processing your CSV file...',
+    });
+
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+          toast({
+            title: 'Empty CSV',
+            description: 'CSV file has no data rows',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        // Parse header
+        const headers = lines[0].split(',').map(h => h.trim());
+        
+        // Validate required columns
+        const requiredColumns = ['Doctor Name', 'Patient Name', 'Patient NIC', 'Patient Email', 'Patient Phone', 'Payment Method', 'Date', 'Time'];
+        const missingColumns = requiredColumns.filter(col => !headers.includes(col));
+        
+        if (missingColumns.length > 0) {
+          toast({
+            title: 'Invalid CSV Format',
+            description: `Missing required columns: ${missingColumns.join(', ')}`,
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        // Parse data rows
+        const parsedRows: BulkAppointmentRow[] = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map(v => v.trim());
+          
+          if (values.length < headers.length) continue; // Skip incomplete rows
+          
+          const rowData: any = {};
+          headers.forEach((header, index) => {
+            rowData[header] = values[index] || '';
+          });
+
+          // Validate payment method
+          const paymentMethod = rowData['Payment Method']?.toUpperCase();
+          if (paymentMethod !== 'BILL_TO_PHONE' && paymentMethod !== 'DEDUCT_FROM_SALARY') {
+            toast({
+              title: `Row ${i} Error`,
+              description: `Invalid payment method. Must be BILL_TO_PHONE or DEDUCT_FROM_SALARY`,
+              variant: 'destructive',
+            });
+            continue;
+          }
+
+          parsedRows.push({
+            id: Date.now().toString() + i,
+            doctorName: rowData['Doctor Name'],
+            patientName: rowData['Patient Name'],
+            patientNIC: rowData['Patient NIC'],
+            patientEmail: rowData['Patient Email'],
+            patientPhone: rowData['Patient Phone'],
+            paymentMethod: paymentMethod as 'BILL_TO_PHONE' | 'DEDUCT_FROM_SALARY',
+            sltPhoneNumber: rowData['SLT Phone Number'] || '',
+            employeeNIC: rowData['Employee NIC'] || '',
+            date: rowData['Date'],
+            time: rowData['Time'],
+            status: 'pending',
+          });
+        }
+
+        if (parsedRows.length === 0) {
+          toast({
+            title: 'No Valid Rows',
+            description: 'Could not parse any valid rows from CSV',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        setRows(parsedRows);
+        toast({
+          title: 'CSV Loaded Successfully',
+          description: `${parsedRows.length} row${parsedRows.length > 1 ? 's' : ''} imported from CSV file`,
+        });
+      } catch (error) {
+        console.error('CSV parsing error:', error);
+        toast({
+          title: 'CSV Parse Error',
+          description: 'Failed to parse CSV file. Please check the format.',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    reader.onerror = () => {
+      toast({
+        title: 'File Read Error',
+        description: 'Failed to read the CSV file',
+        variant: 'destructive',
+      });
+    };
+
+    reader.readAsText(file);
+    
+    // Clear the input so the same file can be uploaded again if needed
+    event.target.value = '';
   };
 
   const downloadTemplate = () => {
     const csvContent =
-      'Doctor Name,Patient Name,Patient Email,Patient Phone,Date,Time\nDr. Saman Perera,John Smith,john@example.com,+94771234567,2025-11-15,09:00\nDr. Nimal Fernando,Jane Doe,jane@example.com,+94771234568,2025-11-15,10:00\nDr. Kamala Silva,Bob Wilson,bob@example.com,+94771234569,2025-11-16,11:00\nDr. Rajesh Gupta,Alice Brown,alice@example.com,+94771234570,2025-11-16,14:00';
+      'Doctor Name,Patient Name,Patient NIC,Patient Email,Patient Phone,Payment Method,SLT Phone Number,Employee NIC,Date,Time\nDr. Saman Perera,John Smith,912345678V,john@example.com,+94771234567,BILL_TO_PHONE,0112121212,,2025-11-15,09:00 AM\nDr. Nimal Fernando,Jane Doe,887654321V,jane@example.com,+94771234568,DEDUCT_FROM_SALARY,,,2025-11-15,10:00 AM\nDr. Kamala Silva,Bob Wilson,756789012V,bob@example.com,+94771234569,BILL_TO_PHONE,0112345678,,2025-11-16,11:00 AM\nDr. Rajesh Gupta,Alice Brown,651234567V,alice@example.com,+94771234570,DEDUCT_FROM_SALARY,,,2025-11-16,02:00 PM';
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -470,6 +587,18 @@ export default function BulkBookingPage() {
                       </div>
 
                       <div>
+                        <Label className="text-xs">Patient NIC</Label>
+                        <Input
+                          placeholder="e.g., 912345678V"
+                          value={row.patientNIC}
+                          onChange={(e) =>
+                            updateRow(row.id, 'patientNIC', e.target.value)
+                          }
+                          className="mt-1"
+                        />
+                      </div>
+
+                      <div>
                         <Label className="text-xs">Patient Email</Label>
                         <Input
                           type="email"
@@ -495,6 +624,52 @@ export default function BulkBookingPage() {
                       </div>
 
                       <div>
+                        <Label className="text-xs">Payment Method</Label>
+                        <Select
+                          value={row.paymentMethod}
+                          onValueChange={(value) =>
+                            updateRow(row.id, 'paymentMethod', value)
+                          }
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="BILL_TO_PHONE">Bill to Phone</SelectItem>
+                            <SelectItem value="DEDUCT_FROM_SALARY">Salary Deduction</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {row.paymentMethod === 'BILL_TO_PHONE' && (
+                        <div>
+                          <Label className="text-xs">SLT Phone Number</Label>
+                          <Input
+                            placeholder="0112121212"
+                            value={row.sltPhoneNumber || ''}
+                            onChange={(e) =>
+                              updateRow(row.id, 'sltPhoneNumber', e.target.value)
+                            }
+                            className="mt-1"
+                          />
+                        </div>
+                      )}
+
+                      {row.paymentMethod === 'DEDUCT_FROM_SALARY' && (
+                        <div>
+                          <Label className="text-xs">Employee NIC (if booking for someone else)</Label>
+                          <Input
+                            placeholder="Employee's NIC"
+                            value={row.employeeNIC || ''}
+                            onChange={(e) =>
+                              updateRow(row.id, 'employeeNIC', e.target.value)
+                            }
+                            className="mt-1"
+                          />
+                        </div>
+                      )}
+
+                      <div>
                         <Label className="text-xs">Date</Label>
                         <Input
                           type="date"
@@ -502,20 +677,30 @@ export default function BulkBookingPage() {
                           onChange={(e) =>
                             updateRow(row.id, 'date', e.target.value)
                           }
+                          min={new Date().toISOString().split('T')[0]}
                           className="mt-1"
                         />
                       </div>
 
                       <div>
                         <Label className="text-xs">Time</Label>
-                        <Input
-                          type="time"
+                        <Select
                           value={row.time}
-                          onChange={(e) =>
-                            updateRow(row.id, 'time', e.target.value)
+                          onValueChange={(value) =>
+                            updateRow(row.id, 'time', value)
                           }
-                          className="mt-1"
-                        />
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select Time" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {timeSlots.map((slot) => (
+                              <SelectItem key={slot} value={slot}>
+                                {slot}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 

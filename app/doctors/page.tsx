@@ -52,10 +52,15 @@ export default function DoctorsPage() {
   
   // Booking form state
   const [patientName, setPatientName] = useState('');
+  const [patientNIC, setPatientNIC] = useState('');
   const [patientEmail, setPatientEmail] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
   const [appointmentDate, setAppointmentDate] = useState('');
   const [appointmentTime, setAppointmentTime] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('BILL_TO_PHONE');
+  const [sltPhoneNumber, setSltPhoneNumber] = useState('');
+  const [bookingForSomeone, setBookingForSomeone] = useState(false);
+  const [employeeNIC, setEmployeeNIC] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [specialtyFilter, setSpecialtyFilter] = useState('all');
 
@@ -116,10 +121,15 @@ export default function DoctorsPage() {
     setShowBookingDialog(true);
     // Reset form
     setPatientName('');
+    setPatientNIC('');
     setPatientEmail('');
     setPatientPhone('');
     setAppointmentDate('');
     setAppointmentTime('');
+    setPaymentMethod('BILL_TO_PHONE');
+    setSltPhoneNumber('');
+    setBookingForSomeone(false);
+    setEmployeeNIC('');
   };
 
   // Handle booking submission
@@ -134,12 +144,15 @@ export default function DoctorsPage() {
       const bookingData = {
         doctorId: selectedDoctor.id,
         patientName,
+        patientNIC,
         patientEmail,
         patientPhone,
         date: appointmentDate,
         timeSlot: appointmentTime,
         amount: selectedDoctor.fee || 3000,
-        paymentMethod: 'corporate-credit'
+        paymentMethod: paymentMethod,
+        sltPhoneNumber: paymentMethod === 'BILL_TO_PHONE' ? sltPhoneNumber : undefined,
+        employeeNIC: paymentMethod === 'DEDUCT_FROM_SALARY' && bookingForSomeone ? employeeNIC : undefined
       };
 
       const response = await api.appointments.create(bookingData);
@@ -363,6 +376,21 @@ export default function DoctorsPage() {
                 </div>
 
                 <div>
+                  <Label htmlFor="patientNIC">
+                    <User className="h-4 w-4 inline mr-2" />
+                    National ID (NIC) *
+                  </Label>
+                  <Input
+                    id="patientNIC"
+                    value={patientNIC}
+                    onChange={(e) => setPatientNIC(e.target.value)}
+                    placeholder="e.g., 912345678V or 19912345678"
+                    required
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
                   <Label htmlFor="patientEmail">
                     <Mail className="h-4 w-4 inline mr-2" />
                     Email Address *
@@ -429,12 +457,100 @@ export default function DoctorsPage() {
                 </div>
               </div>
 
+              {/* Payment Method Selection */}
+              <div className="space-y-3">
+                <Label htmlFor="paymentMethod">Payment Method *</Label>
+                <Select value={paymentMethod} onValueChange={setPaymentMethod} required>
+                  <SelectTrigger id="paymentMethod">
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="BILL_TO_PHONE">
+                      <div className="flex items-center">
+                        <span>�</span>
+                        <span className="ml-2">Bill to Phone (SLT Monthly Bill)</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="DEDUCT_FROM_SALARY">
+                      <div className="flex items-center">
+                        <span>�</span>
+                        <span className="ml-2">Deduct from Salary</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {/* Conditional Fields Based on Payment Method */}
+                {paymentMethod === 'BILL_TO_PHONE' && (
+                  <div>
+                    <div className="p-3 rounded-lg bg-purple-50 border border-purple-200 mb-3">
+                      <p className="text-sm text-purple-800">
+                        <strong>Bill to Phone:</strong> The appointment fee will be added to your SLT monthly phone bill.
+                      </p>
+                    </div>
+                    <Label htmlFor="sltPhoneNumber">
+                      <Phone className="h-4 w-4 inline mr-2" />
+                      SLT Phone Number *
+                    </Label>
+                    <Input
+                      id="sltPhoneNumber"
+                      value={sltPhoneNumber}
+                      onChange={(e) => setSltPhoneNumber(e.target.value)}
+                      placeholder="e.g., 0112121212"
+                      required
+                      className="mt-2"
+                    />
+                  </div>
+                )}
+                
+                {paymentMethod === 'DEDUCT_FROM_SALARY' && (
+                  <div>
+                    <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 mb-3">
+                      <p className="text-sm text-blue-800">
+                        <strong>Deduct from Salary:</strong> The appointment fee will be deducted from monthly salary. Identified by NIC number.
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2 p-3 rounded-lg bg-gray-50 border">
+                      <input
+                        type="checkbox"
+                        id="bookingForSomeone"
+                        checked={bookingForSomeone}
+                        onChange={(e) => setBookingForSomeone(e.target.checked)}
+                        className="w-4 h-4 text-cyan-600 rounded focus:ring-cyan-500"
+                      />
+                      <Label htmlFor="bookingForSomeone" className="cursor-pointer">
+                        Booking for someone else (not the employee)
+                      </Label>
+                    </div>
+                    
+                    {bookingForSomeone && (
+                      <div className="mt-3">
+                        <Label htmlFor="employeeNIC">
+                          <User className="h-4 w-4 inline mr-2" />
+                          Employee NIC (Person paying) *
+                        </Label>
+                        <Input
+                          id="employeeNIC"
+                          value={employeeNIC}
+                          onChange={(e) => setEmployeeNIC(e.target.value)}
+                          placeholder="Enter employee's NIC"
+                          required={bookingForSomeone}
+                          className="mt-2"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Payment Summary */}
               <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Payment Method</p>
-                    <p className="font-semibold text-gray-900">Corporate Credit Account</p>
+                    <p className="text-sm text-gray-600">Selected Payment Method</p>
+                    <p className="font-semibold text-gray-900">
+                      {paymentMethod === 'BILL_TO_PHONE' ? 'Bill to Phone (SLT)' : 'Salary Deduction'}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-gray-600">Total Amount</p>
