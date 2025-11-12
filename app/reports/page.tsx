@@ -536,13 +536,6 @@ export default function ReportsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setSelectedReport(report)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
                         onClick={() => handleExportCSV(report)}
                       >
                         <Download className="h-4 w-4" />

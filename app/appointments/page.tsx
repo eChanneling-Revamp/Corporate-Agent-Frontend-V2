@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Calendar, X, Eye, Loader2, RefreshCw } from 'lucide-react';
+import { Search, Calendar, X, Eye, Loader2, RefreshCw, Phone, Briefcase } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Appointment } from '@/lib/types';
 import { isAuthenticated } from '@/lib/auth';
@@ -384,10 +384,18 @@ export default function AppointmentsPage() {
                                 </p>
                               </div>
                               {appointment.paymentMethod && (
-                                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
-                                  {appointment.paymentMethod === 'BILL_TO_PHONE' 
-                                    ? '📱 Paid by Phone Bill' 
-                                    : '💼 Paid by Salary Deduction'}
+                                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 flex items-center gap-1 w-fit">
+                                  {appointment.paymentMethod === 'BILL_TO_PHONE' ? (
+                                    <>
+                                      <Phone className="h-3 w-3" />
+                                      Paid by Phone Bill
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Briefcase className="h-3 w-3" />
+                                      Paid by Salary Deduction
+                                    </>
+                                  )}
                                 </Badge>
                               )}
                             </div>
