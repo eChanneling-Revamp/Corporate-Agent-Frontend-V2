@@ -1,18 +1,9 @@
 import { Agent, Doctor, Appointment, Payment, Report, DashboardStats } from './types';
 
-// DEVELOPMENT OVERRIDE - Use local API when running locally
+// API Configuration - Always use SLT backend
 const API_BASE = (() => {
-  // Use local API when running in development
-  if (typeof window !== 'undefined') {
-    // Check if running on localhost
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://localhost:3001/api';
-    }
-    // Use production API for deployed frontend
-    return 'https://corporate-agent-backend-v2.onrender.com/api';
-  }
-  // Server-side fallback
-  return 'http://localhost:3001/api';
+  // Always use the SLT VMS backend URL
+  return process.env.NEXT_PUBLIC_API_URL || 'https://dpdlab1.slt.lk:8645/corp-agent/api';
 })();
 
 // Clean production logging

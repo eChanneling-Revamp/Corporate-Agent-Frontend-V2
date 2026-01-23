@@ -26,7 +26,8 @@ export default function LoginPage() {
     try {
       console.log('[AUTH] Attempting login for:', email);
       
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dpdlab1.slt.lk:8645/corp-agent/api';
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

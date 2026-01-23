@@ -254,7 +254,7 @@ export default function SettingsPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/auth/change-password`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://dpdlab1.slt.lk:8645/corp-agent/api'}/auth/change-password`, {
         method: 'POST',
         headers,
         body: JSON.stringify({

@@ -106,7 +106,8 @@ export function Header({ title, breadcrumbs, onMenuClick }: HeaderProps) {
       
       // Call backend logout endpoint
       if (refreshToken) {
-        await fetch('http://localhost:3001/api/auth/logout', {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dpdlab1.slt.lk:8645/corp-agent/api';
+        await fetch(`${API_URL}/auth/logout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken })
