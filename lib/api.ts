@@ -9,7 +9,7 @@ const API_BASE = (() => {
       return 'http://localhost:3001/api';
     }
     // Use production API for deployed frontend
-    return 'https://corporate-agent-backend-v2.onrender.com/api';
+    return 'https://dpdlab1.slt.lk:8645/corp-agent/api';
   }
   // Server-side fallback
   return 'http://localhost:3001/api';

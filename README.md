@@ -182,7 +182,7 @@ npm run start
 ### `.env` Variables
 ```bash
 # API Configuration
-NEXT_PUBLIC_API_BASE_URL=https://corporate-agent-backend-v2.onrender.com/api
+NEXT_PUBLIC_API_BASE_URL=https://dpdlab1.slt.lk:8645/corp-agent/api
 NEXT_PUBLIC_APP_ENV=production
 
 # Feature Flags
