@@ -25,7 +25,7 @@ export default function RootLayout({
               const originalFetch = window.fetch;
               window.fetch = function(url, options) {
                 if (typeof url === 'string' && url.includes('localhost')) {
-                  url = url.replace('http://localhost:3001', 'https://corporate-agent-backend-v2.onrender.com');
+                  url = url.replace('http://localhost:3001', 'https://dpdlab1.slt.lk:8645/corp-agent');
                 }
                 return originalFetch.call(this, url, options);
               };
