@@ -1,18 +1,18 @@
 import { Agent, Doctor, Appointment, Payment, Report, DashboardStats } from './types';
 
-// DEVELOPMENT OVERRIDE - Use local API when running locally
-const API_BASE = (() => {
+// Configuration prioritizing environment variables
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || (() => {
   // Use local API when running in development
   if (typeof window !== 'undefined') {
     // Check if running on localhost
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       return 'http://localhost:3001/api';
     }
-    // Use production API for deployed frontend
+    // Fallback for deployed frontend if env var is missing
     return 'https://dpdlab1.slt.lk:8645/corp-agent/api';
   }
-  // Server-side fallback
-  return 'http://localhost:3001/api';
+  // Server-side fallback (e.g. during build)
+  return 'https://dpdlab1.slt.lk:8645/corp-agent/api';
 })();
 
 // Clean production logging
