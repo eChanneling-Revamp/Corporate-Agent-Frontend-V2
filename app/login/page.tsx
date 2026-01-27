@@ -26,7 +26,11 @@ export default function LoginPage() {
     try {
       console.log('[AUTH] Attempting login for:', email);
       
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      // Use environment variable for API URL
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4012/api';
+      console.log('[AUTH] Using API URL:', API_URL);
+      
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
