@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { User, Lock, Key, Save, Copy, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { User, Lock, Key, Save, Copy, Eye, EyeOff, Loader2, Database, Download, Trash2, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 
@@ -41,6 +41,11 @@ export default function SettingsPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Backup state
+  const [backups, setBackups] = useState<any[]>([]);
+  const [loadingBackups, setLoadingBackups] = useState(false);
+  const [creatingBackup, setCreatingBackup] = useState(false);
 
   // Fetch profile data on mount
   useEffect(() => {
@@ -115,6 +120,12 @@ export default function SettingsPage() {
 
     fetchProfile();
   }, [toast]);
+
+  // Fetch backups when the Database tab is selected
+  useEffect(() => {
+    // Only fetch backups if user might use the Database tab
+    // We'll fetch on demand when they click refresh or create backup
+  }, []);
 
   const apiKeys = [
     {
@@ -304,6 +315,127 @@ export default function SettingsPage() {
     });
   };
 
+  // Backup handlers
+  const fetchBackups = async () => {
+    try {
+      setLoadingBackups(true);
+      const response = await fetch('http://localhost:4012/api/backup/list', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+      });
+      const data = await response.json();
+      if (data.success) {
+        setBackups(data.data.backups || []);
+      }
+    } catch (error) {
+      console.error('Error fetching backups:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch backups',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingBackups(false);
+    }
+  };
+
+  const handleCreateBackup = async () => {
+    try {
+      setCreatingBackup(true);
+      const token = localStorage.getItem('accessToken');
+      console.log('[BACKUP] Token from localStorage:', token ? `${token.substring(0, 20)}...` : 'NULL');
+      
+      const response = await fetch('http://localhost:4012/api/backup/create', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      console.log('[BACKUP] API Response:', data);
+      
+      if (data.success) {
+        toast({
+          title: 'Backup Created',
+          description: `Database backup created successfully (${(data.data.size / (1024 * 1024)).toFixed(2)} MB)`,
+        });
+        fetchBackups(); // Refresh the list
+      } else {
+        throw new Error(data.message || data.error || 'Backup failed');
+      }
+    } catch (error: any) {
+      console.error('Error creating backup:', error);
+      toast({
+        title: 'Backup Failed',
+        description: error.message || 'Failed to create database backup',
+        variant: 'destructive',
+      });
+    } finally {
+      setCreatingBackup(false);
+    }
+  };
+
+  const handleDownloadBackup = async (fileName: string) => {
+    try {
+      const response = await fetch(`http://localhost:4012/api/backup/download/${fileName}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading backup:', error);
+      toast({
+        title: 'Download Failed',
+        description: 'Failed to download backup file',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteBackup = async (fileName: string) => {
+    if (!confirm('Are you sure you want to delete this backup?')) return;
+    
+    try {
+      const response = await fetch(`http://localhost:4012/api/backup/${fileName}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        toast({
+          title: 'Backup Deleted',
+          description: 'Backup file deleted successfully',
+        });
+        fetchBackups(); // Refresh the list
+      } else {
+        throw new Error(data.message || 'Delete failed');
+      }
+    } catch (error: any) {
+      console.error('Error deleting backup:', error);
+      toast({
+        title: 'Delete Failed',
+        description: error.message || 'Failed to delete backup',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Debug render values
   if (typeof window !== 'undefined') {
     console.log('=== RENDER: Current State Values ===');
@@ -327,7 +459,7 @@ export default function SettingsPage() {
     >
       <div className="space-y-6">
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
             <TabsTrigger value="profile">
               <User className="h-4 w-4 mr-2" />
               Profile
@@ -335,6 +467,10 @@ export default function SettingsPage() {
             <TabsTrigger value="security">
               <Lock className="h-4 w-4 mr-2" />
               Security
+            </TabsTrigger>
+            <TabsTrigger value="database">
+              <Database className="h-4 w-4 mr-2" />
+              Database
             </TabsTrigger>
             <TabsTrigger value="integrations">
               <Key className="h-4 w-4 mr-2" />
@@ -594,6 +730,114 @@ export default function SettingsPage() {
                     </Button>
                   </div>
                 </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="database">
+            <Card className="border-none shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Database Backups</CardTitle>
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={() => {
+                      if (backups.length === 0 && !loadingBackups) {
+                        fetchBackups();
+                      } else {
+                        fetchBackups();
+                      }
+                    }}
+                    variant="outline"
+                    disabled={loadingBackups}
+                    className="border-cyan-500 text-cyan-600 hover:bg-cyan-50"
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${loadingBackups ? 'animate-spin' : ''}`} />
+                    {backups.length === 0 && !loadingBackups ? 'Load Backups' : 'Refresh'}
+                  </Button>
+                  <Button
+                    onClick={handleCreateBackup}
+                    disabled={creatingBackup}
+                    className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+                  >
+                    {creatingBackup ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Database className="h-4 w-4 mr-2" />
+                        Create Backup
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
+                    <p className="text-sm text-blue-700 mb-2">
+                      <strong>Note:</strong> Database backups are created automatically every week. You can also create manual backups here.
+                    </p>
+                    <p className="text-xs text-blue-600">
+                      Backups include all data from your NeonDB PostgreSQL database. Keep backups secure and download them to a safe location.
+                    </p>
+                  </div>
+
+                  {loadingBackups ? (
+                    <div className="flex items-center justify-center py-16">
+                      <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+                      <span className="ml-2 text-gray-600">Loading backups...</span>
+                    </div>
+                  ) : backups.length === 0 ? (
+                    <div className="text-center py-16 text-gray-500">
+                      <Database className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                      <p className="text-lg font-medium">No backups found</p>
+                      <p className="text-sm">Create your first backup to get started</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {backups.map((backup, index) => (
+                        <div
+                          key={index}
+                          className="p-4 rounded-xl border-2 border-gray-200 hover:border-cyan-300 transition-colors"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-900 mb-1 font-mono text-sm">
+                                {backup.fileName}
+                              </h3>
+                              <div className="flex items-center space-x-4 text-xs text-gray-600">
+                                <span>Size: {backup.sizeFormatted}</span>
+                                <span>•</span>
+                                <span>Created: {new Date(backup.createdAt).toLocaleString()}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDownloadBackup(backup.fileName)}
+                                className="border-green-500 text-green-600 hover:bg-green-50"
+                              >
+                                <Download className="h-4 w-4 mr-1" />
+                                Download
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteBackup(backup.fileName)}
+                                className="border-red-500 text-red-600 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
