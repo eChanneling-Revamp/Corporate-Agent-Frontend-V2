@@ -186,20 +186,11 @@ export default function LoginPage() {
                 'Sign In'
               )}
             </Button>
-
-            <div className="pt-4 border-t border-gray-200">
-              <p className="text-center text-sm text-gray-600">
-                Demo credentials:{' '}
-                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
-                  corporateagent@slt.lk / ABcd123#
-                </span>
-              </p>
-            </div>
           </form>
         </div>
 
         <p className="text-center text-sm text-gray-600 mt-6">
-          © 2025 eChannelling. All rights reserved.
+          © 2026 eChannelling. All rights reserved.
         </p>
       </div>
     </div>
