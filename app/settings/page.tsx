@@ -17,6 +17,13 @@ export default function SettingsPage() {
   const router = useRouter();
   const { toast } = useToast();
   
+  // API Base URL configuration (same logic as lib/api.ts)
+  const API_BASE = typeof window !== 'undefined'
+    ? (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:4012/api'
+        : 'https://dpdlab1.slt.lk:8645/corp-agent/api')
+    : 'https://dpdlab1.slt.lk:8645/corp-agent/api';
+  
   // Check authentication
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -319,7 +326,7 @@ export default function SettingsPage() {
   const fetchBackups = async () => {
     try {
       setLoadingBackups(true);
-      const response = await fetch('http://localhost:4012/api/backup/list', {
+      const response = await fetch(`${API_BASE}/backup/list`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
@@ -346,7 +353,7 @@ export default function SettingsPage() {
       const token = localStorage.getItem('accessToken');
       console.log('[BACKUP] Token from localStorage:', token ? `${token.substring(0, 20)}...` : 'NULL');
       
-      const response = await fetch('http://localhost:4012/api/backup/create', {
+      const response = await fetch(`${API_BASE}/backup/create`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -378,7 +385,7 @@ export default function SettingsPage() {
 
   const handleDownloadBackup = async (fileName: string) => {
     try {
-      const response = await fetch(`http://localhost:4012/api/backup/download/${fileName}`, {
+      const response = await fetch(`${API_BASE}/backup/download/${fileName}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
@@ -409,7 +416,7 @@ export default function SettingsPage() {
     if (!confirm('Are you sure you want to delete this backup?')) return;
     
     try {
-      const response = await fetch(`http://localhost:4012/api/backup/${fileName}`, {
+      const response = await fetch(`${API_BASE}/backup/${fileName}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
