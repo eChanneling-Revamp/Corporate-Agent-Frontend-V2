@@ -156,13 +156,17 @@ export default function ReportsPage() {
   const handleExportCSV = (report: Report) => {
     try {
       const data = report.data;
+      console.log('[CSV-EXPORT] Report type:', report.type);
+      console.log('[CSV-EXPORT] Report data:', data);
+      
       let csvContent = '';
       let headers: string[] = [];
       let rows: any[] = [];
 
       if (report.type === 'APPOINTMENTS') {
         headers = ['Patient', 'Doctor', 'Hospital', 'Date', 'Status', 'Amount'];
-        rows = data.appointments.map((apt: any) => [
+        console.log('[CSV-EXPORT] Appointments data:', data.appointments);
+        rows = (data.appointments || []).map((apt: any) => [
           apt.patientName,
           apt.doctorName,
           apt.hospital,
@@ -172,7 +176,8 @@ export default function ReportsPage() {
         ]);
       } else if (report.type === 'REVENUE') {
         headers = ['Date', 'Amount', 'Patient', 'Doctor', 'Transaction ID'];
-        rows = data.payments.map((pmt: any) => [
+        console.log('[CSV-EXPORT] Payments data:', data.payments);
+        rows = (data.payments || []).map((pmt: any) => [
           new Date(pmt.date).toLocaleDateString(),
           pmt.amount,
           pmt.patient,
@@ -181,7 +186,8 @@ export default function ReportsPage() {
         ]);
       } else if (report.type === 'DOCTORS' || report.type === 'DOCTOR_PERFORMANCE') {
         headers = ['Doctor', 'Hospital', 'Specialty', 'Total Appointments', 'Confirmed', 'Total Revenue'];
-        rows = data.doctors.map((doc: any) => [
+        console.log('[CSV-EXPORT] Doctors data:', data.doctors);
+        rows = (data.doctors || []).map((doc: any) => [
           doc.name,
           doc.hospital,
           doc.specialty,
@@ -191,10 +197,17 @@ export default function ReportsPage() {
         ]);
       }
 
+      console.log('[CSV-EXPORT] CSV Headers:', headers);
+      console.log('[CSV-EXPORT] CSV Rows count:', rows.length);
+      console.log('[CSV-EXPORT] CSV Rows sample:', rows.slice(0, 2));
+
       csvContent = [
         headers.join(','),
         ...rows.map((row: any) => row.map((cell: any) => `"${cell}"`).join(','))
       ].join('\n');
+
+      console.log('[CSV-EXPORT] CSV Content length:', csvContent.length);
+      console.log('[CSV-EXPORT] CSV Content preview:', csvContent.substring(0, 200));
 
       const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
@@ -208,6 +221,7 @@ export default function ReportsPage() {
         description: 'Report exported to CSV',
       });
     } catch (error) {
+      console.error('[CSV-EXPORT] Error:', error);
       toast({
         title: 'Export Failed',
         description: 'Failed to export report',

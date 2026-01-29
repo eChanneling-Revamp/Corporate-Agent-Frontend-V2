@@ -6,7 +6,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || (() => {
   if (typeof window !== 'undefined') {
     // Check if running on localhost
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://localhost:3001/api';
+      return 'http://localhost:4012/api';
     }
     // Fallback for deployed frontend if env var is missing
     return 'https://dpdlab1.slt.lk:8645/corp-agent/api';
@@ -15,9 +15,11 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || (() => {
   return 'https://dpdlab1.slt.lk:8645/corp-agent/api';
 })();
 
-// Clean production logging
+// Debug logging
 if (typeof window !== 'undefined') {
-  console.log('[CONFIG] Production API configured:', API_BASE);
+  console.log('[CONFIG] NEXT_PUBLIC_API_URL env var:', process.env.NEXT_PUBLIC_API_URL);
+  console.log('[CONFIG] Final API_BASE:', API_BASE);
+  console.log('[CONFIG] Window hostname:', window.location.hostname);
 }
 
 // Helper function to get auth headers

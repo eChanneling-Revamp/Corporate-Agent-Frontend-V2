@@ -318,7 +318,7 @@ export default function PaymentsPage() {
         </div>
         <div style="text-align: right;">
           <p><strong>Payment Method:</strong> ${paymentMethodLabel}</p>
-          <p><strong>Appointment ID:</strong> ${payment.appointmentId.slice(0, 8)}</p>
+          <p><strong>Appointment ID:</strong> ${payment.appointmentId ? payment.appointmentId.slice(0, 8) : 'N/A'}</p>
         </div>
       </div>
       

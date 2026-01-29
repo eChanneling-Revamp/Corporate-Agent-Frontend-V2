@@ -48,6 +48,10 @@ export default function BulkBookingPage() {
   const router = useRouter();
   const { toast } = useToast();
   
+  // State for doctors from API
+  const [availableDoctors, setAvailableDoctors] = useState<string[]>([]);
+  const [loadingDoctors, setLoadingDoctors] = useState(true);
+  
   // Check authentication
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -56,13 +60,46 @@ export default function BulkBookingPage() {
     }
   }, [router]);
   
-  // Available doctors in the database
-  const availableDoctors = [
-    'Dr. Saman Perera',
-    'Dr. Nimal Fernando', 
-    'Dr. Kamala Silva',
-    'Dr. Rajesh Gupta'
-  ];
+  // Fetch doctors from API
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setLoadingDoctors(true);
+        const apiDoctors = await api.doctors.search({});
+        
+        if (apiDoctors && apiDoctors.length > 0) {
+          const doctorNames = apiDoctors.map((doctor: any) => doctor.name);
+          setAvailableDoctors(doctorNames);
+          console.log('[BULK-BOOKING] Loaded doctors:', doctorNames);
+        } else {
+          // Fallback to default doctors if API returns nothing
+          setAvailableDoctors([
+            'Dr. Saman Perera',
+            'Dr. Nimal Fernando',
+            'Dr. Kamala Silva',
+            'Dr. Rajesh Gunawardena',
+            'Dr. Priya Wickramasinghe',
+            'Dr. Anura Jayasinghe'
+          ]);
+        }
+      } catch (error) {
+        console.error('[BULK-BOOKING] Failed to fetch doctors:', error);
+        // Fallback to default doctors on error
+        setAvailableDoctors([
+          'Dr. Saman Perera',
+          'Dr. Nimal Fernando',
+          'Dr. Kamala Silva',
+          'Dr. Rajesh Gunawardena',
+          'Dr. Priya Wickramasinghe',
+          'Dr. Anura Jayasinghe'
+        ]);
+      } finally {
+        setLoadingDoctors(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
   
   // Available time slots (same as doctor search page)
   const timeSlots = [
