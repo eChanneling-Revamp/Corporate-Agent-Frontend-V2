@@ -743,9 +743,9 @@ export default function SettingsPage() {
 
           <TabsContent value="database">
             <Card className="border-none shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Database Backups</CardTitle>
-                <div className="flex space-x-2">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <CardTitle className="text-lg sm:text-xl">Database Backups</CardTitle>
+                <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
                   <Button
                     onClick={() => {
                       if (backups.length === 0 && !loadingBackups) {
@@ -756,7 +756,7 @@ export default function SettingsPage() {
                     }}
                     variant="outline"
                     disabled={loadingBackups}
-                    className="border-cyan-500 text-cyan-600 hover:bg-cyan-50"
+                    className="border-cyan-500 text-cyan-600 hover:bg-cyan-50 w-full sm:w-auto"
                   >
                     <RefreshCw className={`h-4 w-4 mr-2 ${loadingBackups ? 'animate-spin' : ''}`} />
                     {backups.length === 0 && !loadingBackups ? 'Load Backups' : 'Refresh'}
@@ -764,7 +764,7 @@ export default function SettingsPage() {
                   <Button
                     onClick={handleCreateBackup}
                     disabled={creatingBackup}
-                    className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+                    className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white w-full sm:w-auto"
                   >
                     {creatingBackup ? (
                       <>
@@ -782,8 +782,8 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
-                    <p className="text-sm text-blue-700 mb-2">
+                  <div className="p-3 sm:p-4 rounded-xl bg-blue-50 border border-blue-200">
+                    <p className="text-xs sm:text-sm text-blue-700 mb-2">
                       <strong>Note:</strong> Database backups are created automatically every week. You can also create manual backups here.
                     </p>
                     <p className="text-xs text-blue-600">
@@ -792,14 +792,14 @@ export default function SettingsPage() {
                   </div>
 
                   {loadingBackups ? (
-                    <div className="flex items-center justify-center py-16">
+                    <div className="flex flex-col items-center justify-center py-12 sm:py-16">
                       <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-                      <span className="ml-2 text-gray-600">Loading backups...</span>
+                      <span className="ml-2 text-sm sm:text-base text-gray-600 mt-2">Loading backups...</span>
                     </div>
                   ) : backups.length === 0 ? (
-                    <div className="text-center py-16 text-gray-500">
-                      <Database className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                      <p className="text-lg font-medium">No backups found</p>
+                    <div className="text-center py-12 sm:py-16 text-gray-500 px-4">
+                      <Database className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 text-gray-300" />
+                      <p className="text-base sm:text-lg font-medium">No backups found</p>
                       <p className="text-sm">Create your first backup to get started</p>
                     </div>
                   ) : (
@@ -807,28 +807,28 @@ export default function SettingsPage() {
                       {backups.map((backup, index) => (
                         <div
                           key={index}
-                          className="p-4 rounded-xl border-2 border-gray-200 hover:border-cyan-300 transition-colors"
+                          className="p-3 sm:p-4 rounded-xl border-2 border-gray-200 hover:border-cyan-300 transition-colors"
                         >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-gray-900 mb-1 font-mono text-sm">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 mb-1 font-mono text-xs sm:text-sm break-all">
                                 {backup.fileName}
                               </h3>
-                              <div className="flex items-center space-x-4 text-xs text-gray-600">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs text-gray-600">
                                 <span>Size: {backup.sizeFormatted}</span>
-                                <span>•</span>
-                                <span>Created: {new Date(backup.createdAt).toLocaleString()}</span>
+                                <span className="hidden sm:inline">•</span>
+                                <span className="break-words">Created: {new Date(backup.createdAt).toLocaleString()}</span>
                               </div>
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-center gap-2 sm:gap-2 flex-shrink-0">
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleDownloadBackup(backup.fileName)}
-                                className="border-green-500 text-green-600 hover:bg-green-50"
+                                className="border-green-500 text-green-600 hover:bg-green-50 flex-1 sm:flex-initial"
                               >
-                                <Download className="h-4 w-4 mr-1" />
-                                Download
+                                <Download className="h-4 w-4 sm:mr-1" />
+                                <span className="hidden sm:inline">Download</span>
                               </Button>
                               <Button
                                 variant="outline"

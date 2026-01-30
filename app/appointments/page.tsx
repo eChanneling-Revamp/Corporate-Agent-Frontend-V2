@@ -201,20 +201,20 @@ export default function AppointmentsPage() {
       <div className="space-y-6">
         {/* Information Banner */}
         <Card className="border-none shadow-lg bg-gradient-to-r from-cyan-50 to-blue-50 border-l-4 border-cyan-500">
-          <CardContent className="p-6">
-            <div className="flex items-start space-x-4">
-              <div className="bg-cyan-500 p-3 rounded-xl">
-                <Calendar className="h-6 w-6 text-white" />
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+              <div className="bg-cyan-500 p-2.5 sm:p-3 rounded-xl flex-shrink-0">
+                <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg text-gray-900 mb-2">
+              <div className="flex-1 w-full">
+                <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-2">
                   Appointment Management Center
                 </h3>
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-xs sm:text-sm text-gray-600 mb-3">
                   All appointments booked through the ABC Insurance Corporate Agent Portal appear here. 
                   Patients and corporate coordinators can track, view, and manage appointments in real-time.
                 </p>
-                <div className="flex flex-wrap gap-3 text-xs">
+                <div className="flex flex-wrap gap-2 sm:gap-3 text-xs">
                   <Badge className="bg-emerald-100 text-emerald-700">✓ Real-time Updates</Badge>
                   <Badge className="bg-blue-100 text-blue-700">✓ SMS & Email Notifications</Badge>
                   <Badge className="bg-purple-100 text-purple-700">✓ Corporate Billing</Badge>
@@ -226,25 +226,25 @@ export default function AppointmentsPage() {
         </Card>
 
         <Card className="border-none shadow-lg">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="md:col-span-2">
-                <Label>Search</Label>
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="sm:col-span-2">
+                <Label className="text-xs sm:text-sm">Search</Label>
                 <div className="relative mt-2">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   <Input
                     placeholder="Search by patient or doctor name..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-9 sm:pl-10 text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <Label>Filter by Doctor</Label>
+                <Label className="text-xs sm:text-sm">Filter by Doctor</Label>
                 <Select value={filterDoctor} onValueChange={setFilterDoctor}>
-                  <SelectTrigger className="mt-2">
+                  <SelectTrigger className="mt-2 text-xs sm:text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -259,9 +259,9 @@ export default function AppointmentsPage() {
               </div>
 
               <div>
-                <Label>Filter by Hospital</Label>
+                <Label className="text-xs sm:text-sm">Filter by Hospital</Label>
                 <Select value={filterHospital} onValueChange={setFilterHospital}>
-                  <SelectTrigger className="mt-2">
+                  <SelectTrigger className="mt-2 text-xs sm:text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -276,14 +276,15 @@ export default function AppointmentsPage() {
               </div>
             </div>
 
-            <div className="flex justify-end mt-4">
+            <div className="flex justify-end mt-3 sm:mt-4">
               <Button 
                 variant="outline" 
                 onClick={fetchAppointments}
                 disabled={loading}
-                className="flex items-center space-x-2"
+                className="flex items-center gap-2 text-xs sm:text-sm"
+                size="sm"
               >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 ${loading ? 'animate-spin' : ''}`} />
                 <span>Refresh</span>
               </Button>
             </div>
@@ -291,29 +292,29 @@ export default function AppointmentsPage() {
         </Card>
 
         <Card className="border-none shadow-lg">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-              <TabsList className="grid w-full grid-cols-3 mb-6">
-                <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-                <TabsTrigger value="completed">Completed</TabsTrigger>
-                <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3 mb-4 sm:mb-6">
+                <TabsTrigger value="upcoming" className="text-xs sm:text-sm">Upcoming</TabsTrigger>
+                <TabsTrigger value="completed" className="text-xs sm:text-sm">Completed</TabsTrigger>
+                <TabsTrigger value="cancelled" className="text-xs sm:text-sm">Cancelled</TabsTrigger>
               </TabsList>
 
               <TabsContent value={selectedTab} className="space-y-4">
                 {loading ? (
-                  <div className="flex items-center justify-center py-16">
-                    <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-                    <span className="ml-2 text-gray-600">Loading appointments...</span>
+                  <div className="flex flex-col sm:flex-row items-center justify-center py-12 sm:py-16 gap-2">
+                    <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-cyan-500" />
+                    <span className="text-sm sm:text-base text-gray-600">Loading appointments...</span>
                   </div>
                 ) : filteredAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
-                    className="p-6 rounded-xl border-2 border-gray-200 hover:border-cyan-300 hover:shadow-md transition-all duration-200"
+                    className="p-4 sm:p-6 rounded-xl border-2 border-gray-200 hover:border-cyan-300 hover:shadow-md transition-all duration-200"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-4 flex-1">
-                        <Avatar className="h-14 w-14">
-                          <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
+                    <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                      <div className="flex items-start gap-3 sm:gap-4 flex-1 w-full">
+                        <Avatar className="h-12 w-12 sm:h-14 sm:w-14 flex-shrink-0">
+                          <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm sm:text-base">
                             {appointment.doctorName
                               .split(' ')
                               .map((n) => n[0])
@@ -321,26 +322,26 @@ export default function AppointmentsPage() {
                           </AvatarFallback>
                         </Avatar>
 
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <h3 className="font-semibold text-lg text-gray-900">
+                        <div className="flex-1 min-w-0 w-full">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-base sm:text-lg text-gray-900">
                                 {appointment.doctorName}
                               </h3>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-xs sm:text-sm text-gray-600">
                                 {appointment.specialty} • {appointment.hospital}
                               </p>
                             </div>
                             <Badge
                               className={`${getStatusColor(
                                 appointment.status
-                              )} text-xs`}
+                              )} text-xs w-fit`}
                             >
                               {appointment.status}
                             </Badge>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4">
                             <div>
                               <p className="text-xs text-gray-500 mb-1">
                                 Patient Details
@@ -375,16 +376,16 @@ export default function AppointmentsPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-                            <div className="flex items-center space-x-4">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-200">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
                               <div>
                                 <p className="text-xs text-gray-500">Amount</p>
-                                <p className="text-lg font-bold text-gray-900">
+                                <p className="text-base sm:text-lg font-bold text-gray-900">
                                   Rs. {appointment.amount.toLocaleString()}
                                 </p>
                               </div>
                               {appointment.paymentMethod && (
-                                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 flex items-center gap-1 w-fit">
+                                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 flex items-center gap-1 w-fit text-xs">
                                   {appointment.paymentMethod === 'BILL_TO_PHONE' ? (
                                     <>
                                       <Phone className="h-3 w-3" />
@@ -400,7 +401,7 @@ export default function AppointmentsPage() {
                               )}
                             </div>
 
-                            <div className="flex space-x-2">
+                            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -408,6 +409,7 @@ export default function AppointmentsPage() {
                                   setSelectedAppointment(appointment);
                                   setShowDetailsDialog(true);
                                 }}
+                                className="w-full sm:w-auto text-xs sm:text-sm"
                               >
                                 <Eye className="h-4 w-4 mr-2" />
                                 View Details
@@ -417,7 +419,7 @@ export default function AppointmentsPage() {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto text-xs sm:text-sm"
                                     onClick={() => {
                                       setSelectedAppointment(appointment);
                                       setShowCancelDialog(true);
@@ -436,14 +438,14 @@ export default function AppointmentsPage() {
                 ))}
 
                 {!loading && filteredAppointments.length === 0 && (
-                  <div className="text-center py-16">
-                    <div className="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
-                      <Calendar className="h-12 w-12 text-gray-400" />
+                  <div className="text-center py-12 sm:py-16">
+                    <div className="bg-gray-100 rounded-full w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center mx-auto mb-4">
+                      <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                       No appointments found
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-sm sm:text-base text-gray-600">
                       Try adjusting your filters or search query
                     </p>
                   </div>
@@ -455,16 +457,16 @@ export default function AppointmentsPage() {
       </div>
 
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-md sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Cancel Appointment</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-base sm:text-lg">Cancel Appointment</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               Please provide a reason for cancelling this appointment
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-red-50 border border-red-200">
+            <div className="p-3 sm:p-4 rounded-xl bg-red-50 border border-red-200">
               <p className="text-sm font-medium text-gray-900">
                 {selectedAppointment?.doctorName}
               </p>
@@ -477,28 +479,28 @@ export default function AppointmentsPage() {
             </div>
 
             <div>
-              <Label>Cancellation Reason</Label>
+              <Label className="text-xs sm:text-sm">Cancellation Reason</Label>
               <Textarea
                 placeholder="Enter reason for cancellation..."
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
-                className="mt-2"
+                className="mt-2 text-xs sm:text-sm"
                 rows={4}
               />
             </div>
 
-            <div className="flex space-x-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <Button
                 variant="outline"
                 onClick={() => setShowCancelDialog(false)}
-                className="flex-1"
+                className="flex-1 text-xs sm:text-sm"
                 disabled={cancelLoading}
               >
                 Go Back
               </Button>
               <Button
                 onClick={handleCancelAppointment}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm"
                 disabled={cancelLoading}
               >
                 {cancelLoading ? (
