@@ -310,7 +310,7 @@ export default function ReportsPage() {
     >
       <div className="space-y-6">
         {/* Report Type Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {reportTypes.map((type) => {
             const Icon = type.icon;
             return (
@@ -321,14 +321,14 @@ export default function ReportsPage() {
                 }`}
                 onClick={() => setReportType(type.id)}
               >
-                <CardContent className="p-6">
-                  <div className="flex items-start space-x-4">
-                    <div className={`bg-gradient-to-r ${type.color} p-3 rounded-xl`}>
-                      <Icon className="h-6 w-6 text-white" />
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className={`bg-gradient-to-r ${type.color} p-2.5 sm:p-3 rounded-xl flex-shrink-0`}>
+                      <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">{type.title}</h3>
-                      <p className="text-sm text-gray-600">{type.description}</p>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">{type.title}</h3>
+                      <p className="text-xs sm:text-sm text-gray-600">{type.description}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -340,26 +340,26 @@ export default function ReportsPage() {
         {/* Report Generation Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Generate New Report</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Generate New Report</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div>
-                <Label>From Date</Label>
+                <Label className="text-xs sm:text-sm">From Date</Label>
                 <Input
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="mt-2"
+                  className="mt-2 text-sm"
                 />
               </div>
               <div>
-                <Label>To Date</Label>
+                <Label className="text-xs sm:text-sm">To Date</Label>
                 <Input
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="mt-2"
+                  className="mt-2 text-sm"
                 />
               </div>
             </div>
@@ -367,7 +367,7 @@ export default function ReportsPage() {
             <Button
               onClick={handleGenerateReport}
               disabled={generating}
-              className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white text-sm sm:text-base"
             >
               {generating ? (
                 <>
@@ -388,18 +388,19 @@ export default function ReportsPage() {
         {selectedReport && (
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>{selectedReport.title}</CardTitle>
-                  <p className="text-sm text-gray-500 mt-1">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex-1">
+                  <CardTitle className="text-base sm:text-lg">{selectedReport.title}</CardTitle>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-1">
                     Generated {formatDate(selectedReport.createdAt)}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full sm:w-auto">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleExportCSV(selectedReport)}
+                    className="flex-1 sm:flex-initial text-xs sm:text-sm"
                   >
                     <Download className="h-4 w-4 mr-2" />
                     Export CSV
@@ -410,22 +411,22 @@ export default function ReportsPage() {
             <CardContent>
               {selectedReport.type === 'APPOINTMENTS' && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 rounded-lg bg-cyan-50 border border-cyan-200">
-                      <p className="text-sm text-gray-600">Total</p>
-                      <p className="text-2xl font-bold">{selectedReport.data.totalAppointments}</p>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="p-3 sm:p-4 rounded-lg bg-cyan-50 border border-cyan-200">
+                      <p className="text-xs sm:text-sm text-gray-600">Total</p>
+                      <p className="text-xl sm:text-2xl font-bold">{selectedReport.data.totalAppointments}</p>
                     </div>
-                    <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200">
-                      <p className="text-sm text-gray-600">Confirmed</p>
-                      <p className="text-2xl font-bold text-emerald-600">{selectedReport.data.confirmed}</p>
+                    <div className="p-3 sm:p-4 rounded-lg bg-emerald-50 border border-emerald-200">
+                      <p className="text-xs sm:text-sm text-gray-600">Confirmed</p>
+                      <p className="text-xl sm:text-2xl font-bold text-emerald-600">{selectedReport.data.confirmed}</p>
                     </div>
-                    <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
-                      <p className="text-sm text-gray-600">Pending</p>
-                      <p className="text-2xl font-bold text-amber-600">{selectedReport.data.pending}</p>
+                    <div className="p-3 sm:p-4 rounded-lg bg-amber-50 border border-amber-200">
+                      <p className="text-xs sm:text-sm text-gray-600">Pending</p>
+                      <p className="text-xl sm:text-2xl font-bold text-amber-600">{selectedReport.data.pending}</p>
                     </div>
-                    <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-                      <p className="text-sm text-gray-600">Cancelled</p>
-                      <p className="text-2xl font-bold text-red-600">{selectedReport.data.cancelled}</p>
+                    <div className="p-3 sm:p-4 rounded-lg bg-red-50 border border-red-200">
+                      <p className="text-xs sm:text-sm text-gray-600">Cancelled</p>
+                      <p className="text-xl sm:text-2xl font-bold text-red-600">{selectedReport.data.cancelled}</p>
                     </div>
                   </div>
                 </div>
@@ -433,22 +434,22 @@ export default function ReportsPage() {
 
               {selectedReport.type === 'REVENUE' && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200">
-                      <p className="text-sm text-gray-600">Total Revenue (Confirmed)</p>
-                      <p className="text-2xl font-bold">{formatCurrency(selectedReport.data.totalRevenue || 0)}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="p-3 sm:p-4 rounded-lg bg-emerald-50 border border-emerald-200">
+                      <p className="text-xs sm:text-sm text-gray-600">Total Revenue (Confirmed)</p>
+                      <p className="text-lg sm:text-2xl font-bold break-words">{formatCurrency(selectedReport.data.totalRevenue || 0)}</p>
                     </div>
-                    <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
-                      <p className="text-sm text-gray-600">Pending Revenue</p>
-                      <p className="text-2xl font-bold text-amber-600">{formatCurrency(selectedReport.data.pendingRevenue || 0)}</p>
+                    <div className="p-3 sm:p-4 rounded-lg bg-amber-50 border border-amber-200">
+                      <p className="text-xs sm:text-sm text-gray-600">Pending Revenue</p>
+                      <p className="text-lg sm:text-2xl font-bold text-amber-600 break-words">{formatCurrency(selectedReport.data.pendingRevenue || 0)}</p>
                     </div>
-                    <div className="p-4 rounded-lg bg-cyan-50 border border-cyan-200">
-                      <p className="text-sm text-gray-600">Confirmed Count</p>
-                      <p className="text-2xl font-bold">{selectedReport.data.paidCount || 0}</p>
+                    <div className="p-3 sm:p-4 rounded-lg bg-cyan-50 border border-cyan-200">
+                      <p className="text-xs sm:text-sm text-gray-600">Confirmed Count</p>
+                      <p className="text-lg sm:text-2xl font-bold">{selectedReport.data.paidCount || 0}</p>
                     </div>
-                    <div className="p-4 rounded-lg bg-purple-50 border border-purple-200">
-                      <p className="text-sm text-gray-600">Average/Appointment</p>
-                      <p className="text-2xl font-bold">{formatCurrency(selectedReport.data.averagePerAppointment || 0)}</p>
+                    <div className="p-3 sm:p-4 rounded-lg bg-purple-50 border border-purple-200">
+                      <p className="text-xs sm:text-sm text-gray-600">Average/Appointment</p>
+                      <p className="text-lg sm:text-2xl font-bold break-words">{formatCurrency(selectedReport.data.averagePerAppointment || 0)}</p>
                     </div>
                   </div>
                 </div>
@@ -456,42 +457,42 @@ export default function ReportsPage() {
 
               {(selectedReport.type === 'DOCTORS' || selectedReport.type === 'DOCTOR_PERFORMANCE') && (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-lg bg-purple-50 border border-purple-200 mb-4">
-                    <p className="text-sm text-gray-600">Total Doctors</p>
-                    <p className="text-2xl font-bold">{selectedReport.data.totalDoctors || 0}</p>
+                  <div className="p-3 sm:p-4 rounded-lg bg-purple-50 border border-purple-200 mb-4">
+                    <p className="text-xs sm:text-sm text-gray-600">Total Doctors</p>
+                    <p className="text-xl sm:text-2xl font-bold">{selectedReport.data.totalDoctors || 0}</p>
                   </div>
                   {selectedReport.data.topPerformers && selectedReport.data.topPerformers.length > 0 ? (
-                    <div className="rounded-md border">
+                    <div className="rounded-md border overflow-x-auto">
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Doctor</TableHead>
-                            <TableHead>Hospital</TableHead>
-                            <TableHead>Appointments</TableHead>
-                            <TableHead>Confirmed</TableHead>
-                            <TableHead>Revenue</TableHead>
+                            <TableHead className="text-xs sm:text-sm">Doctor</TableHead>
+                            <TableHead className="text-xs sm:text-sm">Hospital</TableHead>
+                            <TableHead className="text-xs sm:text-sm">Appointments</TableHead>
+                            <TableHead className="text-xs sm:text-sm">Confirmed</TableHead>
+                            <TableHead className="text-xs sm:text-sm">Revenue</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {selectedReport.data.topPerformers.map((doctor: any, idx: number) => (
                             <TableRow key={idx}>
-                              <TableCell>
+                              <TableCell className="text-xs sm:text-sm">
                                 <div>
                                   <div className="font-medium">{doctor.name}</div>
                                   <div className="text-xs text-gray-500">{doctor.specialty}</div>
                                 </div>
                               </TableCell>
-                              <TableCell>{doctor.hospital}</TableCell>
-                              <TableCell>{doctor.totalAppointments}</TableCell>
-                              <TableCell>{doctor.confirmed}</TableCell>
-                              <TableCell className="font-semibold">{formatCurrency(doctor.totalRevenue || 0)}</TableCell>
+                              <TableCell className="text-xs sm:text-sm">{doctor.hospital}</TableCell>
+                              <TableCell className="text-xs sm:text-sm">{doctor.totalAppointments}</TableCell>
+                              <TableCell className="text-xs sm:text-sm">{doctor.confirmed}</TableCell>
+                              <TableCell className="font-semibold text-xs sm:text-sm">{formatCurrency(doctor.totalRevenue || 0)}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
                       </Table>
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-gray-500">
+                    <div className="text-center py-8 text-gray-500 text-sm">
                       No doctor data available for this period
                     </div>
                   )}
@@ -504,53 +505,54 @@ export default function ReportsPage() {
         {/* Report History */}
         <Card>
           <CardHeader>
-            <CardTitle>Report History</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Report History</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-                <span className="ml-3 text-gray-600">Loading reports...</span>
+              <div className="flex flex-col sm:flex-row items-center justify-center py-12 gap-2 sm:gap-3">
+                <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-cyan-500" />
+                <span className="text-sm sm:text-base text-gray-600">Loading reports...</span>
               </div>
             ) : reports.length === 0 ? (
               <div className="text-center py-12">
-                <FileText className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No reports yet</h3>
-                <p className="text-gray-500">Generate your first report to get started</p>
+                <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-gray-300 mb-4" />
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No reports yet</h3>
+                <p className="text-sm sm:text-base text-gray-500">Generate your first report to get started</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {reports.map((report) => (
                   <div
                     key={report.id}
-                    className="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50 transition-colors"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 rounded-lg border hover:bg-gray-50 transition-colors gap-3"
                   >
-                    <div className="flex items-center space-x-4 flex-1">
-                      <div className={`p-3 rounded-lg bg-gradient-to-r ${
+                    <div className="flex items-start gap-3 sm:gap-4 flex-1 w-full sm:w-auto">
+                      <div className={`p-2.5 sm:p-3 rounded-lg bg-gradient-to-r flex-shrink-0 ${
                         report.type === 'APPOINTMENTS' ? 'from-cyan-500 to-blue-500' :
                         report.type === 'REVENUE' ? 'from-emerald-500 to-teal-500' :
                         'from-purple-500 to-pink-500'
                       }`}>
-                        {report.type === 'APPOINTMENTS' && <FileText className="h-5 w-5 text-white" />}
-                        {report.type === 'REVENUE' && <DollarSign className="h-5 w-5 text-white" />}
-                        {(report.type === 'DOCTORS' || report.type === 'DOCTOR_PERFORMANCE') && <Users className="h-5 w-5 text-white" />}
+                        {report.type === 'APPOINTMENTS' && <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-white" />}
+                        {report.type === 'REVENUE' && <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-white" />}
+                        {(report.type === 'DOCTORS' || report.type === 'DOCTOR_PERFORMANCE') && <Users className="h-4 w-4 sm:h-5 sm:w-5 text-white" />}
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">{report.title}</h4>
-                        <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900 text-sm sm:text-base">{report.title}</h4>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1 text-xs sm:text-sm text-gray-500">
                           <span className="flex items-center">
                             <Calendar className="h-3 w-3 mr-1" />
                             {formatDate(report.createdAt)}
                           </span>
-                          <Badge variant="outline">{report.type}</Badge>
+                          <Badge variant="outline" className="text-xs w-fit">{report.type}</Badge>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleExportCSV(report)}
+                        className="text-xs sm:text-sm"
                       >
                         <Download className="h-4 w-4" />
                       </Button>
@@ -561,6 +563,7 @@ export default function ReportsPage() {
                           setReportToDelete(report.id);
                           setDeleteDialog(true);
                         }}
+                        className="text-xs sm:text-sm"
                       >
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>

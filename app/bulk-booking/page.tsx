@@ -460,19 +460,19 @@ export default function BulkBookingPage() {
       <div className="space-y-6">
         {/* Available Doctors Info */}
         <Card className="border-l-4 border-l-cyan-500 bg-cyan-50/50">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="bg-cyan-100 rounded-full p-2">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-start gap-3">
+              <div className="bg-cyan-100 rounded-full p-2 flex-shrink-0">
                 <AlertCircle className="h-5 w-5 text-cyan-600" />
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Available Doctors</h3>
-                <p className="text-sm text-gray-600 mb-2">
+              <div className="flex-1 w-full">
+                <h3 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">Available Doctors</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mb-2">
                   Please select from the following available doctors:
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {availableDoctors.map((doctor) => (
-                    <Badge key={doctor} variant="secondary" className="bg-cyan-100 text-cyan-700">
+                    <Badge key={doctor} variant="secondary" className="bg-cyan-100 text-cyan-700 text-xs">
                       {doctor}
                     </Badge>
                   ))}
@@ -482,17 +482,17 @@ export default function BulkBookingPage() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card className="border-none shadow-lg">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="text-center">
-                <div className="bg-cyan-100 rounded-xl p-4 inline-block mb-3">
-                  <Upload className="h-8 w-8 text-cyan-600" />
+                <div className="bg-cyan-100 rounded-xl p-3 sm:p-4 inline-block mb-3">
+                  <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-cyan-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">
+                <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">
                   Upload CSV
                 </h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-xs sm:text-sm text-gray-600 mb-4">
                   Import multiple appointments from CSV
                 </p>
                 <label htmlFor="csv-upload">
@@ -504,10 +504,10 @@ export default function BulkBookingPage() {
                     onChange={handleCSVUpload}
                   />
                   <Button
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white text-xs sm:text-sm"
                     onClick={() => document.getElementById('csv-upload')?.click()}
                   >
-                    <Upload className="mr-2 h-4 w-4" />
+                    <Upload className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     Upload CSV
                   </Button>
                 </label>
@@ -516,38 +516,38 @@ export default function BulkBookingPage() {
           </Card>
 
           <Card className="border-none shadow-lg">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="text-center">
-                <div className="bg-blue-100 rounded-xl p-4 inline-block mb-3">
-                  <Download className="h-8 w-8 text-blue-600" />
+                <div className="bg-blue-100 rounded-xl p-3 sm:p-4 inline-block mb-3">
+                  <Download className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">
+                <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">
                   Download Template
                 </h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-xs sm:text-sm text-gray-600 mb-4">
                   Get CSV template with sample data
                 </p>
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full text-xs sm:text-sm"
                   onClick={downloadTemplate}
                 >
-                  <Download className="mr-2 h-4 w-4" />
+                  <Download className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   Download Template
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
-            <CardContent className="p-6">
+          <Card className="border-none shadow-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white sm:col-span-2 lg:col-span-1">
+            <CardContent className="p-4 sm:p-6">
               <div className="text-center">
-                <div className="bg-white/20 rounded-xl p-4 inline-block mb-3">
-                  <CheckCircle2 className="h-8 w-8" />
+                <div className="bg-white/20 rounded-xl p-3 sm:p-4 inline-block mb-3">
+                  <CheckCircle2 className="h-6 w-6 sm:h-8 sm:w-8" />
                 </div>
-                <h3 className="font-semibold mb-2">Valid Entries</h3>
-                <p className="text-3xl font-bold mb-2">{validCount}</p>
-                <p className="text-sm opacity-90">
+                <h3 className="font-semibold mb-2 text-sm sm:text-base">Valid Entries</h3>
+                <p className="text-2xl sm:text-3xl font-bold mb-2">{validCount}</p>
+                <p className="text-xs sm:text-sm opacity-90">
                   Total: Rs. {totalAmount.toLocaleString()}
                 </p>
               </div>
@@ -556,21 +556,22 @@ export default function BulkBookingPage() {
         </div>
 
         <Card className="border-none shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Appointment Entries</CardTitle>
-            <div className="flex space-x-2">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+            <CardTitle className="text-lg sm:text-xl">Appointment Entries</CardTitle>
+            <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={validateRows}
                 disabled={isValidating}
+                className="w-full sm:w-auto text-xs sm:text-sm"
               >
                 {isValidating ? 'Validating...' : 'Validate All'}
               </Button>
               <Button
                 size="sm"
                 onClick={addRow}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                className="bg-cyan-600 hover:bg-cyan-700 text-white w-full sm:w-auto text-xs sm:text-sm"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Row
@@ -582,14 +583,14 @@ export default function BulkBookingPage() {
               {rows.map((row, index) => (
                 <div
                   key={row.id}
-                  className="p-4 rounded-xl border-2 border-gray-200 hover:border-cyan-300 transition-colors"
+                  className="p-3 sm:p-4 rounded-xl border-2 border-gray-200 hover:border-cyan-300 transition-colors"
                 >
-                  <div className="flex items-start space-x-4">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 font-semibold text-gray-600">
+                  <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                    <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-100 font-semibold text-gray-600 text-sm sm:text-base flex-shrink-0">
                       {index + 1}
                     </div>
 
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                       <div>
                         <Label className="text-xs">Doctor Name</Label>
                         <Select
@@ -741,7 +742,7 @@ export default function BulkBookingPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-center space-y-2">
+                    <div className="flex sm:flex-col items-center justify-between sm:justify-start gap-2 sm:space-y-2 flex-shrink-0">
                       {getStatusIcon(row.status)}
                       <Button
                         variant="ghost"
@@ -755,22 +756,22 @@ export default function BulkBookingPage() {
                   </div>
 
                   {row.error && (
-                    <div className="mt-3 p-2 rounded-lg bg-red-50 border border-red-200">
-                      <p className="text-xs text-red-600">{row.error}</p>
+                    <div className="mt-3 p-2 sm:p-3 rounded-lg bg-red-50 border border-red-200">
+                      <p className="text-xs sm:text-sm text-red-600">{row.error}</p>
                     </div>
                   )}
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 flex items-center justify-between p-6 rounded-xl bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200">
-              <div>
-                <p className="text-sm text-gray-600">Total Valid Appointments</p>
-                <p className="text-2xl font-bold text-gray-900">{validCount}</p>
+            <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 sm:p-6 rounded-xl bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200">
+              <div className="text-center sm:text-left">
+                <p className="text-xs sm:text-sm text-gray-600">Total Valid Appointments</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{validCount}</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">Total Amount</p>
-                <p className="text-2xl font-bold text-cyan-600">
+              <div className="text-center sm:text-left">
+                <p className="text-xs sm:text-sm text-gray-600">Total Amount</p>
+                <p className="text-xl sm:text-2xl font-bold text-cyan-600">
                   Rs. {totalAmount.toLocaleString()}
                 </p>
               </div>
@@ -778,7 +779,7 @@ export default function BulkBookingPage() {
                 size="lg"
                 onClick={handleBulkBooking}
                 disabled={validCount === 0 || isBooking}
-                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-8"
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-6 sm:px-8 w-full sm:w-auto text-sm sm:text-base"
               >
                 {isBooking ? (
                   <>

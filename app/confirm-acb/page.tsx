@@ -173,16 +173,16 @@ export default function ConfirmACBPage() {
     >
       <div className="space-y-6">
         <Card className="border-none shadow-lg bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500">
-          <CardContent className="p-6">
-            <div className="flex items-start space-x-4">
-              <div className="bg-amber-500 p-3 rounded-xl">
-                <CheckCircle2 className="h-6 w-6 text-white" />
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+              <div className="bg-amber-500 p-2.5 sm:p-3 rounded-xl flex-shrink-0">
+                <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg text-gray-900 mb-2">
+              <div className="flex-1 w-full">
+                <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-2">
                   Pending Confirmations
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600">
                   You have{' '}
                   <span className="font-bold text-amber-700">
                     {filteredAppointments.length}
@@ -191,51 +191,51 @@ export default function ConfirmACBPage() {
                   confirm or cancel each appointment.
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-3xl font-bold text-amber-600">
+              <div className="text-center sm:text-right w-full sm:w-auto">
+                <p className="text-2xl sm:text-3xl font-bold text-amber-600">
                   {filteredAppointments.length}
                 </p>
-                <p className="text-sm text-gray-600">Pending</p>
+                <p className="text-xs sm:text-sm text-gray-600">Pending</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg">
-          <CardContent className="p-6">
-            <div className="mb-6">
-              <Label>Search Appointments</Label>
+          <CardContent className="p-4 sm:p-6">
+            <div className="mb-4 sm:mb-6">
+              <Label className="text-sm sm:text-base">Search Appointments</Label>
               <div className="relative mt-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                 <Input
                   placeholder="Search by doctor, patient, or hospital..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-9 sm:pl-10 text-sm sm:text-base"
                 />
               </div>
             </div>
 
             <div className="space-y-4">
               {loading ? (
-                <div className="text-center py-16">
-                  <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-amber-600" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <div className="text-center py-12 sm:py-16">
+                  <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin mx-auto mb-4 text-amber-600" />
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                     Loading ACB Appointments...
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-sm sm:text-base text-gray-600">
                     Fetching pending appointments for confirmation
                   </p>
                 </div>
               ) : filteredAppointments.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="bg-emerald-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle2 className="h-12 w-12 text-emerald-600" />
+                <div className="text-center py-12 sm:py-16">
+                  <div className="bg-emerald-100 rounded-full w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="h-10 w-10 sm:h-12 sm:w-12 text-emerald-600" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                     All Caught Up!
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-sm sm:text-base text-gray-600">
                     No pending appointments to confirm
                   </p>
                 </div>
@@ -243,12 +243,12 @@ export default function ConfirmACBPage() {
                 filteredAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  className="p-6 rounded-xl border-2 border-gray-200 hover:border-amber-300 hover:shadow-md transition-all duration-200"
+                  className="p-4 sm:p-6 rounded-xl border-2 border-gray-200 hover:border-amber-300 hover:shadow-md transition-all duration-200"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4 flex-1">
-                      <Avatar className="h-14 w-14">
-                        <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
+                  <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                    <div className="flex items-start gap-3 sm:gap-4 flex-1 w-full">
+                      <Avatar className="h-12 w-12 sm:h-14 sm:w-14 flex-shrink-0">
+                        <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm sm:text-base">
                           {appointment.doctorName
                             .split(' ')
                             .map((n) => n[0])
@@ -256,22 +256,22 @@ export default function ConfirmACBPage() {
                         </AvatarFallback>
                       </Avatar>
 
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="font-semibold text-lg text-gray-900">
+                      <div className="flex-1 min-w-0 w-full">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-base sm:text-lg text-gray-900">
                               {appointment.doctorName}
                             </h3>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-xs sm:text-sm text-gray-600">
                               {appointment.specialty} • {appointment.hospital}
                             </p>
                           </div>
-                          <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+                          <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-xs w-fit">
                             Pending Confirmation
                           </Badge>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-gray-50">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-gray-50">
                           <div>
                             <p className="text-xs text-gray-500 mb-1">
                               Patient Details
@@ -330,11 +330,11 @@ export default function ConfirmACBPage() {
                           </div>
                         </div>
 
-                        <div className="flex justify-end space-x-3 mt-4">
+                        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 mt-4">
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto text-xs sm:text-sm"
                             onClick={() => handleCancel(appointment)}
                           >
                             <X className="h-4 w-4 mr-2" />
@@ -342,7 +342,7 @@ export default function ConfirmACBPage() {
                           </Button>
                           <Button
                             size="sm"
-                            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
+                            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white w-full sm:w-auto text-xs sm:text-sm"
                             onClick={() => handleConfirm(appointment)}
                           >
                             <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -357,14 +357,14 @@ export default function ConfirmACBPage() {
               )}
 
               {filteredAppointments.length === 0 && !loading && (
-                <div className="text-center py-16">
-                  <div className="bg-emerald-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle2 className="h-12 w-12 text-emerald-600" />
+                <div className="text-center py-12 sm:py-16">
+                  <div className="bg-emerald-100 rounded-full w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="h-10 w-10 sm:h-12 sm:w-12 text-emerald-600" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                     All Caught Up!
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-sm sm:text-base text-gray-600">
                     No pending appointments to confirm
                   </p>
                 </div>
@@ -375,79 +375,79 @@ export default function ConfirmACBPage() {
       </div>
 
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-md sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Confirm Appointment</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-base sm:text-lg">Confirm Appointment</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               Review and confirm the appointment details below
             </DialogDescription>
           </DialogHeader>
 
           {selectedAppointment && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+              <div className="p-3 sm:p-4 rounded-xl bg-emerald-50 border border-emerald-200">
                 <div className="flex items-center space-x-2 mb-3">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                  <p className="text-sm font-semibold text-gray-900">
+                  <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
+                  <p className="text-xs sm:text-sm font-semibold text-gray-900">
                     Confirmation Summary
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-xs text-gray-600">Doctor:</span>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-xs sm:text-sm font-medium text-gray-900 text-right">
                       {selectedAppointment.doctorName}
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-xs text-gray-600">Patient:</span>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-xs sm:text-sm font-medium text-gray-900 text-right">
                       {selectedAppointment.patientName}
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-xs text-gray-600">Date & Time:</span>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-xs sm:text-sm font-medium text-gray-900 text-right">
                       {selectedAppointment.date} • {selectedAppointment.time}
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-xs text-gray-600">Hospital:</span>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-xs sm:text-sm font-medium text-gray-900 text-right">
                       {selectedAppointment.hospital}
                     </span>
                   </div>
-                  <div className="flex justify-between pt-2 border-t border-emerald-200">
+                  <div className="flex justify-between gap-2 pt-2 border-t border-emerald-200">
                     <span className="text-xs text-gray-600">
                       Consultation Fee:
                     </span>
-                    <span className="text-lg font-bold text-emerald-700">
+                    <span className="text-base sm:text-lg font-bold text-emerald-700">
                       Rs. {selectedAppointment.amount.toLocaleString()}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
+              <div className="p-3 sm:p-4 rounded-xl bg-blue-50 border border-blue-200">
                 <p className="text-xs text-blue-700">
                   <strong>Note:</strong> By confirming this appointment, the patient will be notified via email
                   and the appointment will be marked as confirmed in the system.
                 </p>
               </div>
 
-              <div className="flex space-x-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setShowConfirmDialog(false)}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm"
                   disabled={confirmLoading}
                 >
                   Go Back
                 </Button>
                 <Button
                   onClick={handleConfirmSubmit}
-                  className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
+                  className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-xs sm:text-sm"
                   disabled={confirmLoading}
                 >
                   {confirmLoading ? (
@@ -466,46 +466,46 @@ export default function ConfirmACBPage() {
       </Dialog>
 
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-md sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Cancel Appointment</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-base sm:text-lg">Cancel Appointment</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               Please provide a reason for cancelling this appointment
             </DialogDescription>
           </DialogHeader>
 
           {selectedAppointment && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-red-50 border border-red-200">
+              <div className="p-3 sm:p-4 rounded-xl bg-red-50 border border-red-200">
                 <div className="flex items-center space-x-2 mb-3">
-                  <X className="h-5 w-5 text-red-600" />
-                  <p className="text-sm font-semibold text-gray-900">
+                  <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                  <p className="text-xs sm:text-sm font-semibold text-gray-900">
                     Appointment to Cancel
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-xs text-gray-600">Patient:</span>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-xs sm:text-sm font-medium text-gray-900 text-right">
                       {selectedAppointment.patientName}
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-xs text-gray-600">Doctor:</span>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-xs sm:text-sm font-medium text-gray-900 text-right">
                       {selectedAppointment.doctorName}
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-xs text-gray-600">Date & Time:</span>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-xs sm:text-sm font-medium text-gray-900 text-right">
                       {selectedAppointment.date} • {selectedAppointment.time}
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-xs text-gray-600">ID:</span>
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-gray-600 break-all text-right">
                       {selectedAppointment.id}
                     </span>
                   </div>
@@ -513,41 +513,41 @@ export default function ConfirmACBPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="cancelReason">Cancellation Reason *</Label>
+                <Label htmlFor="cancelReason" className="text-xs sm:text-sm">Cancellation Reason *</Label>
                 <Textarea
                   id="cancelReason"
                   placeholder="Please provide a reason for cancelling this appointment..."
                   value={cancelReason}
                   onChange={(e) => setCancelReason(e.target.value)}
-                  className="min-h-[100px]"
+                  className="min-h-[100px] text-xs sm:text-sm"
                 />
                 <p className="text-xs text-gray-500">
                   This reason will be included in the cancellation email sent to the patient.
                 </p>
               </div>
 
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200">
+              <div className="p-3 sm:p-4 rounded-xl bg-amber-50 border border-amber-200">
                 <p className="text-xs text-amber-700">
                   <strong>Warning:</strong> This action cannot be undone. The patient will be notified
                   immediately via email about the cancellation.
                 </p>
               </div>
 
-              <div className="flex space-x-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <Button
                   variant="outline"
                   onClick={() => {
                     setShowCancelDialog(false);
                     setCancelReason('');
                   }}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm"
                   disabled={cancelLoading}
                 >
                   Go Back
                 </Button>
                 <Button
                   onClick={handleCancelSubmit}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm"
                   disabled={cancelLoading || !cancelReason.trim()}
                 >
                   {cancelLoading ? (
